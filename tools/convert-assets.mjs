@@ -111,6 +111,8 @@ await convertImages('bg', path.join(legacy, 'BG'), ['.bmp'], 'webp', false);
 // (mofsplash.png duplicates mofsplash.bmp, so .png is left out to avoid a key clash.)
 await convertImages('ui', legacy, ['.bmp', '.jpg'], 'webp', false);
 await convertSounds();
+// The in-game cursor (frmmain.frm MouseIcon); browsers accept .cur directly.
+fs.copyFileSync(path.join(legacy, 'cursor.cur'), path.join(outRoot, 'ui', 'cursor.cur'));
 
 for (const group of Object.keys(manifest)) {
   manifest[group] = Object.fromEntries(Object.entries(manifest[group]).sort(([a], [b]) => a.localeCompare(b)));

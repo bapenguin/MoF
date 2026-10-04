@@ -32,6 +32,7 @@ export class Input {
     canvas.addEventListener('pointercancel', up);
     window.addEventListener('blur', up);
     window.addEventListener('keydown', (e) => {
+      if (e.code === 'F1') e.preventDefault(); // the game's cheat key, not browser help
       if (e.repeat) return;
       this.keys.push(e.code);
     });
