@@ -32,13 +32,15 @@ import {
 import { bg, h, menuLink } from '../ui/dom';
 import { LoadingScene } from './loading';
 import { PlayScene } from './play';
+import { MassacreScene } from './massacre';
 
-const MENU_MUSIC = 'music2';
+export const MENU_MUSIC = 'music2';
 
 export const MENU_ASSETS = [
   () => loadSheet('bforrest', 1, 1, 'bg'),
   () => loadSheet('hof-panel', 1, 1, 'ui'),
   () => loadSheet('full', 1, 1, 'ui'),
+  () => loadSheet('massacre-bg', 1, 1, 'ui'),
   () => audio.load(MENU_MUSIC),
 ];
 
@@ -195,7 +197,7 @@ export class MenuScene implements Scene {
     this.player = p;
     setLastPlayer(p.name);
     if (this.mode === 'massacre') {
-      this.show('login', 'Massacre Mode is coming in the next update!');
+      this.engine.setScene(new MassacreScene(p));
       return;
     }
     this.show('scenarios');
