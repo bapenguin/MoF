@@ -1,0 +1,271 @@
+{
+  "gimp": {
+    "id": "gimp",
+    "name": "The Gimp Cat",
+    "class": 1,
+    "sprite": "gimpcat",
+    "deathSprite": "catdie1",
+    "frames": 8,
+    "hp": 1,
+    "speed": 150,
+    "intel": 0,
+    "worth": -5000,
+    "gift": 0,
+    "dieSounds": [
+      "cdie",
+      "fdie6"
+    ]
+  },
+  "bird": {
+    "id": "bird",
+    "name": "Flyin Bird",
+    "class": 3,
+    "sprite": "bird",
+    "deathSprite": "bird",
+    "frames": 8,
+    "hp": 1,
+    "speed": 150,
+    "intel": 0,
+    "worth": -5000,
+    "gift": 0,
+    "dieSounds": [
+      "cdie",
+      "fdie6"
+    ]
+  },
+  "fatboy": {
+    "id": "fatboy",
+    "name": "Fat Jimmy and his Dog",
+    "class": 1,
+    "sprite": "boydog",
+    "deathSprite": "boydogd1",
+    "frames": 8,
+    "hp": 15000,
+    "speed": 150,
+    "intel": 0,
+    "worth": -10000,
+    "gift": 0,
+    "dieSounds": [
+      "bdie",
+      "fdie8"
+    ]
+  },
+  "green": {
+    "id": "green",
+    "name": "Slimey Sam, the Green Guy",
+    "class": 0,
+    "sprite": "fairy3",
+    "deathSprite": "fairy3d1",
+    "frames": 8,
+    "hp": 1,
+    "speed": 50,
+    "intel": 3,
+    "worth": 25,
+    "gift": 0,
+    "dieSounds": [
+      "fdie1",
+      "fdie8"
+    ],
+    "actSprite": "fairy3a",
+    "actChance": 2,
+    "actSound": "wee"
+  },
+  "pale": {
+    "id": "pale",
+    "name": "Our Paley Friend",
+    "class": 0,
+    "sprite": "fairy10",
+    "deathSprite": "fairy10d1",
+    "frames": 8,
+    "hp": 5,
+    "speed": 50,
+    "intel": 3,
+    "worth": 25,
+    "gift": 0,
+    "dieSounds": [
+      "fdie1",
+      "fdie8"
+    ],
+    "actSprite": "fairy10a",
+    "actChance": 2
+  },
+  "blue": {
+    "id": "blue",
+    "name": "'Lil Bastard",
+    "class": 0,
+    "sprite": "fairy2",
+    "deathSprite": "fairy2d1",
+    "frames": 8,
+    "hp": 2,
+    "speed": 750,
+    "intel": 10,
+    "worth": 1000,
+    "gift": 0,
+    "dieSounds": [
+      "fdie1",
+      "fdie7"
+    ]
+  },
+  "screech": {
+    "id": "screech",
+    "name": "The Amazing Screech Owl",
+    "class": 2,
+    "sprite": "screechowl",
+    "deathSprite": "screechowld1",
+    "frames": 8,
+    "hp": 2,
+    "speed": 0,
+    "intel": 0,
+    "worth": -1000,
+    "gift": 0,
+    "dieSounds": [
+      "owld1",
+      "owld1"
+    ],
+    "actSprite": "screechowls",
+    "actChance": 5,
+    "actSound": "screech"
+  },
+  "white": {
+    "id": "white",
+    "name": "Snow White",
+    "class": 0,
+    "sprite": "fairy1",
+    "deathSprite": "fairy1d1",
+    "frames": 8,
+    "hp": 2,
+    "speed": 150,
+    "intel": 10,
+    "worth": 25,
+    "gift": 0,
+    "dieSounds": [
+      "fdie4",
+      "fdie4"
+    ]
+  },
+  "green2": {
+    "id": "green2",
+    "name": "Slimey Joe, the Green Guy's Brudda",
+    "class": 0,
+    "sprite": "fairy3",
+    "deathSprite": "fairy3d1",
+    "frames": 8,
+    "hp": 2,
+    "speed": 300,
+    "intel": 5,
+    "worth": 50,
+    "gift": 1,
+    "dieSounds": [
+      "fdie8",
+      "fdie4"
+    ]
+  },
+  "cavebitch": {
+    "id": "cavebitch",
+    "name": "Uglet",
+    "class": 0,
+    "sprite": "fairy7",
+    "deathSprite": "fairy7d1",
+    "frames": 8,
+    "hp": 5,
+    "speed": 300,
+    "intel": 1,
+    "worth": 200,
+    "gift": 0,
+    "dieSounds": [
+      "fdie8",
+      "fdie7"
+    ]
+  },
+  "afrofairy": {
+    "id": "afrofairy",
+    "name": "The Afrocan Queen",
+    "class": 0,
+    "sprite": "fboss1",
+    "deathSprite": "fboss1",
+    "frames": 2,
+    "hp": 1000,
+    "speed": 300,
+    "intel": 10,
+    "worth": 12000,
+    "gift": 0,
+    "dieSounds": [
+      "fdie8",
+      "fdie7"
+    ]
+  },
+  "glow": {
+    "id": "glow",
+    "name": "Great Balls of Fairy",
+    "class": 0,
+    "sprite": "fairy4",
+    "deathSprite": "fairy4d1",
+    "frames": 8,
+    "hp": 2,
+    "speed": 350,
+    "intel": 5,
+    "worth": 50,
+    "gift": 0,
+    "dieSounds": [
+      "fdie1",
+      "fdie3"
+    ]
+  },
+  "electric": {
+    "id": "electric",
+    "name": "Elmo the Electro-Fairy",
+    "class": 0,
+    "sprite": "fairy6",
+    "deathSprite": "fairy6d1",
+    "frames": 8,
+    "hp": 20,
+    "speed": 300,
+    "intel": 15,
+    "worth": 100,
+    "gift": 3,
+    "dieSounds": [
+      "fdie1",
+      "fdie2"
+    ],
+    "actSprite": "fairy6a",
+    "actChance": 5,
+    "actSound": "zzz"
+  },
+  "bikini": {
+    "id": "bikini",
+    "name": "Bikini Babe",
+    "class": 0,
+    "sprite": "fairy8",
+    "deathSprite": "fairy8d1",
+    "frames": 8,
+    "hp": 2,
+    "speed": 500,
+    "intel": 4,
+    "worth": 200,
+    "gift": 0,
+    "dieSounds": [
+      "fdie8",
+      "fdie7"
+    ]
+  },
+  "float": {
+    "id": "float",
+    "name": "Floater",
+    "class": 0,
+    "sprite": "fairy9",
+    "deathSprite": "fairy9d1",
+    "frames": 8,
+    "hp": 1,
+    "speed": 400,
+    "intel": 10,
+    "worth": 1000,
+    "gift": 0,
+    "dieSounds": [
+      "fdie1",
+      "fdie2"
+    ],
+    "actSprite": "fairy9a",
+    "actChance": 2,
+    "actSound": "putput"
+  }
+}

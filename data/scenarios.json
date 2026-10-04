@@ -1,0 +1,26 @@
+[
+  {
+    "id": "wild",
+    "title": "Into The Wilderness",
+    "description": "While lying in bed next to your beautiful girlfriend Boof, you suddenly are awakened by a loud buzzing sound. Boof is gone, and Fairies are everywhere, you set out and follow her screams.",
+    "worth": 1
+  },
+  {
+    "id": "des",
+    "title": "The Desert after Dinner",
+    "description": "After the storm you find yourself stranded on a beach. Ahead you see a volcanic Island. You decide to see what's ahead, but wait, the fairies have followed you here too...",
+    "worth": 2
+  },
+  {
+    "id": "snow",
+    "title": "Barren BURR!",
+    "description": "After your crash landing you find yourself against a frozen tundra. It seems to go on forever, nothing seems to live. But wait, the fairies followed you here too....DIE FAIRIES!",
+    "worth": 3
+  },
+  {
+    "id": "fland",
+    "title": "Da Fairy Kingdom",
+    "description": "You find yourself climbing a stairway into the clouds, ascending further and further, finally you realize you are heading right into the heart of the fairy kingdom. GO GET EM'",
+    "worth": 0
+  }
+]

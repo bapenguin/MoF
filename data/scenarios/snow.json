@@ -1,0 +1,350 @@
+{
+  "id": "snow",
+  "title": "Barren BURR!",
+  "description": "After your crash landing you find yourself against a frozen tundra. It seems to go on forever, nothing seems to live. But wait, the fairies followed you here too....DIE FAIRIES!",
+  "worth": 3,
+  "start": "gourge",
+  "ammo": {
+    "1": 999,
+    "2": 50,
+    "4": 200,
+    "7": 1
+  },
+  "levels": {
+    "gourge": {
+      "id": "gourge",
+      "name": "The Gourge",
+      "bg": "gourge",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "wfall",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 30
+        },
+        {
+          "type": "white2",
+          "count": 10
+        },
+        {
+          "type": "electric",
+          "count": 1
+        }
+      ],
+      "weather": "snow",
+      "ambient": "crow"
+    },
+    "wfall": {
+      "id": "wfall",
+      "name": "The Frozen Waterfall",
+      "bg": "frwfall",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "berg",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 30
+        },
+        {
+          "type": "cavebitch",
+          "count": 1
+        },
+        {
+          "type": "white2",
+          "count": 10
+        },
+        {
+          "type": "electric",
+          "count": 1
+        }
+      ],
+      "weather": "snow",
+      "ambient": "crow"
+    },
+    "berg": {
+      "id": "berg",
+      "name": "Welcome to the Bergs",
+      "bg": "iceberg",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "plain",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 30
+        },
+        {
+          "type": "white2",
+          "count": 10
+        },
+        {
+          "type": "electric",
+          "count": 1
+        }
+      ],
+      "weather": "snow"
+    },
+    "plain": {
+      "id": "plain",
+      "name": "Plains o' Snow",
+      "bg": "snowplain",
+      "music": "music6",
+      "timeLimit": 50,
+      "next": "stairs",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 30
+        },
+        {
+          "type": "white2",
+          "count": 10
+        },
+        {
+          "type": "cavebitch",
+          "count": 1
+        },
+        {
+          "type": "electric",
+          "count": 1
+        }
+      ],
+      "weather": "snow"
+    },
+    "stairs": {
+      "id": "stairs",
+      "name": "The Cold White Snow",
+      "bg": "snowstairs",
+      "music": "music2",
+      "timeLimit": 50,
+      "next": "end",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 30
+        },
+        {
+          "type": "white2",
+          "count": 10
+        },
+        {
+          "type": "electric",
+          "count": 1
+        }
+      ],
+      "weather": "snow",
+      "ambient": "crow"
+    }
+  },
+  "fairies": {
+    "gimp": {
+      "id": "gimp",
+      "name": "The Gimp Cat",
+      "class": 1,
+      "sprite": "gimpcat",
+      "deathSprite": "catdie1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 150,
+      "intel": 0,
+      "worth": -25,
+      "gift": 0,
+      "dieSounds": [
+        "cdie",
+        "fdie6"
+      ]
+    },
+    "fatboy": {
+      "id": "fatboy",
+      "name": "Fat Jimmy and his Dog",
+      "class": 1,
+      "sprite": "boydog",
+      "deathSprite": "boydogd1",
+      "frames": 8,
+      "hp": 500,
+      "speed": 150,
+      "intel": 0,
+      "worth": -25,
+      "gift": 0,
+      "dieSounds": [
+        "bdie",
+        "fdie8"
+      ]
+    },
+    "green": {
+      "id": "green",
+      "name": "Slimey Sam, the Green Guy",
+      "class": 0,
+      "sprite": "fairy3",
+      "deathSprite": "fairy3d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 50,
+      "intel": 3,
+      "worth": 25,
+      "gift": 1,
+      "dieSounds": [
+        "fdie1",
+        "fdie8"
+      ]
+    },
+    "blue": {
+      "id": "blue",
+      "name": "'Lil Bastard",
+      "class": 0,
+      "sprite": "fairy2",
+      "deathSprite": "fairy2d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 750,
+      "intel": 10,
+      "worth": 1000,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie7"
+      ]
+    },
+    "white": {
+      "id": "white",
+      "name": "Snow White",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 3,
+      "speed": 150,
+      "intel": 10,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie4",
+        "fdie4"
+      ]
+    },
+    "green2": {
+      "id": "green2",
+      "name": "Slimey Joe, the Green Guy's Brudda",
+      "class": 0,
+      "sprite": "fairy3",
+      "deathSprite": "fairy3d1",
+      "frames": 8,
+      "hp": 4,
+      "speed": 300,
+      "intel": 5,
+      "worth": 50,
+      "gift": 1,
+      "dieSounds": [
+        "fdie8",
+        "fdie4"
+      ]
+    },
+    "blue2": {
+      "id": "blue2",
+      "name": "'Lil Bitch",
+      "class": 0,
+      "sprite": "fairy2",
+      "deathSprite": "fairy2d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 450,
+      "intel": 7,
+      "worth": 500,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie7"
+      ]
+    },
+    "white2": {
+      "id": "white2",
+      "name": "Whitey Ford",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 4,
+      "speed": 320,
+      "intel": 15,
+      "worth": 50,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie4"
+      ]
+    },
+    "glow": {
+      "id": "glow",
+      "name": "Great Balls of Fairy",
+      "class": 0,
+      "sprite": "fairy4",
+      "deathSprite": "fairy4d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 350,
+      "intel": 5,
+      "worth": 50,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie3"
+      ]
+    },
+    "electric": {
+      "id": "electric",
+      "name": "Elmo the Electro-Fairy",
+      "class": 0,
+      "sprite": "fairy6",
+      "deathSprite": "fairy6d1",
+      "frames": 8,
+      "hp": 20,
+      "speed": 300,
+      "intel": 15,
+      "worth": 100,
+      "gift": 3,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ],
+      "actSprite": "fairy6a",
+      "actChance": 5,
+      "actSound": "zzz"
+    },
+    "cavebitch": {
+      "id": "cavebitch",
+      "name": "Uglet",
+      "class": 0,
+      "sprite": "fairy7",
+      "deathSprite": "fairy7d1",
+      "frames": 8,
+      "hp": 6,
+      "speed": 300,
+      "intel": 1,
+      "worth": 200,
+      "gift": 5,
+      "dieSounds": [
+        "fdie8",
+        "fdie7"
+      ]
+    },
+    "bikini": {
+      "id": "bikini",
+      "name": "Bikini Babe",
+      "class": 0,
+      "sprite": "fairy8",
+      "deathSprite": "fairy8d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 500,
+      "intel": 4,
+      "worth": 200,
+      "gift": 0,
+      "dieSounds": [
+        "fdie8",
+        "fdie7"
+      ]
+    }
+  }
+}

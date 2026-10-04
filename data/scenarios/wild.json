@@ -1,0 +1,405 @@
+{
+  "id": "wild",
+  "title": "Into The Wilderness",
+  "description": "While lying in bed next to your beautiful girlfriend Boof, you suddenly are awakened by a loud buzzing sound. Boof is gone, and Fairies are everywhere, you set out and follow her screams.",
+  "worth": 1,
+  "start": "forrest",
+  "ammo": {
+    "1": 999
+  },
+  "levels": {
+    "forrest": {
+      "id": "forrest",
+      "name": "The Mean Green Forrest",
+      "bg": "bforrest",
+      "music": "music3",
+      "timeLimit": 60,
+      "next": "forrest2",
+      "spawns": [
+        {
+          "type": "green",
+          "count": 20
+        },
+        {
+          "type": "bird",
+          "count": 2
+        },
+        {
+          "type": "screech",
+          "count": 1
+        }
+      ],
+      "foreground": "fore5",
+      "ambient": "bird"
+    },
+    "forrest2": {
+      "id": "forrest2",
+      "name": "The Meaner Greener Forrest",
+      "bg": "forrest2",
+      "music": "music2",
+      "timeLimit": 60,
+      "next": "pond",
+      "spawns": [
+        {
+          "type": "pale",
+          "count": 5
+        },
+        {
+          "type": "green",
+          "count": 15
+        },
+        {
+          "type": "screech",
+          "count": 1
+        }
+      ],
+      "foreground": "fore5",
+      "ambient": "bird"
+    },
+    "pond": {
+      "id": "pond",
+      "name": "The Big Happy Pond",
+      "bg": "pond",
+      "music": "music2",
+      "timeLimit": 50,
+      "next": "cave",
+      "spawns": [
+        {
+          "type": "green",
+          "count": 25
+        },
+        {
+          "type": "green2",
+          "count": 5
+        },
+        {
+          "type": "fatboy",
+          "count": 1
+        }
+      ],
+      "foreground": "fore1",
+      "ambient": "crow"
+    },
+    "cave": {
+      "id": "cave",
+      "name": "The Dark Scary Cave",
+      "bg": "caves",
+      "music": "music3",
+      "timeLimit": 45,
+      "next": "icave",
+      "spawns": [
+        {
+          "type": "green",
+          "count": 30
+        },
+        {
+          "type": "green2",
+          "count": 5
+        }
+      ],
+      "foreground": "fore6",
+      "ambient": "drip"
+    },
+    "icave": {
+      "id": "icave",
+      "name": "Into the Dark Scary Cave",
+      "bg": "icave",
+      "music": "music3",
+      "timeLimit": 45,
+      "next": "valley",
+      "spawns": [
+        {
+          "type": "green",
+          "count": 25
+        },
+        {
+          "type": "green2",
+          "count": 5
+        },
+        {
+          "type": "cavebitch",
+          "count": 20
+        }
+      ],
+      "ambient": "drip",
+      "foreground": "fore4"
+    },
+    "valley": {
+      "id": "valley",
+      "name": "The Stinky Smelly Valley",
+      "bg": "valls",
+      "music": "music3",
+      "timeLimit": 160,
+      "next": "plains",
+      "spawns": [
+        {
+          "type": "green",
+          "count": 10
+        },
+        {
+          "type": "blue",
+          "count": 10
+        },
+        {
+          "type": "white",
+          "count": 1
+        }
+      ],
+      "ambient": "bird"
+    },
+    "plains": {
+      "id": "plains",
+      "name": "The Wide Grassy Plains",
+      "bg": "fields",
+      "music": "music1",
+      "timeLimit": 40,
+      "next": "storm",
+      "spawns": [
+        {
+          "type": "green",
+          "count": 50
+        },
+        {
+          "type": "green2",
+          "count": 5
+        },
+        {
+          "type": "gimp",
+          "count": 1
+        }
+      ],
+      "foreground": "fore2"
+    },
+    "storm": {
+      "id": "storm",
+      "name": "Storms a brewin'",
+      "bg": "storm",
+      "music": "music3",
+      "timeLimit": 40,
+      "next": "storm2",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 30
+        },
+        {
+          "type": "blue",
+          "count": 15
+        }
+      ],
+      "weather": "rain"
+    },
+    "storm2": {
+      "id": "storm2",
+      "name": "Storms a brewin'",
+      "bg": "storm",
+      "music": "music3",
+      "timeLimit": 40,
+      "next": "end",
+      "spawns": [
+        {
+          "type": "afrofairy",
+          "count": 1
+        }
+      ],
+      "weather": "rain"
+    }
+  },
+  "fairies": {
+    "gimp": {
+      "id": "gimp",
+      "name": "The Gimp Cat",
+      "class": 1,
+      "sprite": "gimpcat",
+      "deathSprite": "catdie1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 150,
+      "intel": 0,
+      "worth": -5000,
+      "gift": 0,
+      "dieSounds": [
+        "cdie",
+        "fdie6"
+      ]
+    },
+    "bird": {
+      "id": "bird",
+      "name": "Flyin Bird",
+      "class": 3,
+      "sprite": "bird",
+      "deathSprite": "bird",
+      "frames": 8,
+      "hp": 1,
+      "speed": 150,
+      "intel": 0,
+      "worth": -5000,
+      "gift": 0,
+      "dieSounds": [
+        "cdie",
+        "fdie6"
+      ]
+    },
+    "fatboy": {
+      "id": "fatboy",
+      "name": "Fat Jimmy and his Dog",
+      "class": 1,
+      "sprite": "boydog",
+      "deathSprite": "boydogd1",
+      "frames": 8,
+      "hp": 15000,
+      "speed": 150,
+      "intel": 0,
+      "worth": -10000,
+      "gift": 0,
+      "dieSounds": [
+        "bdie",
+        "fdie8"
+      ]
+    },
+    "green": {
+      "id": "green",
+      "name": "Slimey Sam, the Green Guy",
+      "class": 0,
+      "sprite": "fairy3",
+      "deathSprite": "fairy3d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 50,
+      "intel": 3,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie8"
+      ],
+      "actSprite": "fairy3a",
+      "actChance": 2,
+      "actSound": "wee"
+    },
+    "pale": {
+      "id": "pale",
+      "name": "Our Paley Friend",
+      "class": 0,
+      "sprite": "fairy10",
+      "deathSprite": "fairy10d1",
+      "frames": 8,
+      "hp": 5,
+      "speed": 50,
+      "intel": 3,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie8"
+      ],
+      "actSprite": "fairy10a",
+      "actChance": 2
+    },
+    "blue": {
+      "id": "blue",
+      "name": "'Lil Bastard",
+      "class": 0,
+      "sprite": "fairy2",
+      "deathSprite": "fairy2d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 750,
+      "intel": 10,
+      "worth": 1000,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie7"
+      ]
+    },
+    "screech": {
+      "id": "screech",
+      "name": "The Amazing Screech Owl",
+      "class": 2,
+      "sprite": "screechowl",
+      "deathSprite": "screechowld1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 0,
+      "intel": 0,
+      "worth": -1000,
+      "gift": 0,
+      "dieSounds": [
+        "owld1",
+        "owld1"
+      ],
+      "actSprite": "screechowls",
+      "actChance": 5,
+      "actSound": "screech"
+    },
+    "white": {
+      "id": "white",
+      "name": "Snow White",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 150,
+      "intel": 10,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie4",
+        "fdie4"
+      ]
+    },
+    "green2": {
+      "id": "green2",
+      "name": "Slimey Joe, the Green Guy's Brudda",
+      "class": 0,
+      "sprite": "fairy3",
+      "deathSprite": "fairy3d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 300,
+      "intel": 5,
+      "worth": 50,
+      "gift": 1,
+      "dieSounds": [
+        "fdie8",
+        "fdie4"
+      ]
+    },
+    "cavebitch": {
+      "id": "cavebitch",
+      "name": "Uglet",
+      "class": 0,
+      "sprite": "fairy7",
+      "deathSprite": "fairy7d1",
+      "frames": 8,
+      "hp": 5,
+      "speed": 300,
+      "intel": 1,
+      "worth": 200,
+      "gift": 0,
+      "dieSounds": [
+        "fdie8",
+        "fdie7"
+      ]
+    },
+    "afrofairy": {
+      "id": "afrofairy",
+      "name": "The Afrocan Queen",
+      "class": 0,
+      "sprite": "fboss1",
+      "deathSprite": "fboss1",
+      "frames": 2,
+      "hp": 1000,
+      "speed": 300,
+      "intel": 10,
+      "worth": 12000,
+      "gift": 0,
+      "dieSounds": [
+        "fdie8",
+        "fdie7"
+      ]
+    }
+  }
+}

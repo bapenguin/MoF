@@ -1,0 +1,303 @@
+{
+  "id": "fland",
+  "title": "Da Fairy Kingdom",
+  "description": "You find yourself climbing a stairway into the clouds, ascending further and further, finally you realize you are heading right into the heart of the fairy kingdom. GO GET EM'",
+  "worth": 0,
+  "start": "pathways",
+  "ammo": {
+    "1": 999,
+    "2": 50,
+    "3": 500,
+    "4": 100,
+    "5": 1
+  },
+  "levels": {
+    "pathways": {
+      "id": "pathways",
+      "name": "Pathways to Destruction",
+      "bg": "pathways",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "stairway",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 9
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "pale",
+          "count": 5
+        }
+      ]
+    },
+    "stairway": {
+      "id": "stairway",
+      "name": "Ascend into the Kingdom",
+      "bg": "stairway",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "fairyentrance",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 15
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "pale",
+          "count": 2
+        },
+        {
+          "type": "blue",
+          "count": 2
+        }
+      ]
+    },
+    "fairyentrance": {
+      "id": "fairyentrance",
+      "name": "Find and slaughter EVERYTHING",
+      "bg": "fentrance",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "temple",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 25
+        },
+        {
+          "type": "float2",
+          "count": 1
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "bikini",
+          "count": 1
+        },
+        {
+          "type": "pale",
+          "count": 2
+        }
+      ]
+    },
+    "temple": {
+      "id": "temple",
+      "name": "Pray to the Fairy God...then kill em",
+      "bg": "temple",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "fcastle",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 2
+        },
+        {
+          "type": "float2",
+          "count": 1
+        },
+        {
+          "type": "pale",
+          "count": 25
+        }
+      ]
+    },
+    "fcastle": {
+      "id": "fcastle",
+      "name": "Almost there",
+      "bg": "fairycastle",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "castle",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 25
+        },
+        {
+          "type": "glow",
+          "count": 10
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "pale",
+          "count": 24
+        }
+      ]
+    },
+    "castle": {
+      "id": "castle",
+      "name": "I hear Boof",
+      "bg": "castle",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "end",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 25
+        },
+        {
+          "type": "pale",
+          "count": 30
+        }
+      ]
+    }
+  },
+  "fairies": {
+    "white": {
+      "id": "white",
+      "name": "Snow White",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 150,
+      "intel": 10,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie4",
+        "fdie4"
+      ]
+    },
+    "white2": {
+      "id": "white2",
+      "name": "Whitey Ford",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 3,
+      "speed": 320,
+      "intel": 15,
+      "worth": 50,
+      "gift": 2,
+      "dieSounds": [
+        "fdie1",
+        "fdie4"
+      ]
+    },
+    "glow": {
+      "id": "glow",
+      "name": "Great Balls of Fairy",
+      "class": 0,
+      "sprite": "fairy4",
+      "deathSprite": "fairy4d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 350,
+      "intel": 5,
+      "worth": 50,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie3"
+      ]
+    },
+    "electric": {
+      "id": "electric",
+      "name": "Elmo the Electro-Fairy",
+      "class": 0,
+      "sprite": "fairy6",
+      "deathSprite": "fairy6d1",
+      "frames": 8,
+      "hp": 10,
+      "speed": 300,
+      "intel": 15,
+      "worth": 100,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ]
+    },
+    "float": {
+      "id": "float",
+      "name": "Floater",
+      "class": 0,
+      "sprite": "fairy9",
+      "deathSprite": "fairy9d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 400,
+      "intel": 10,
+      "worth": 1000,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ],
+      "actSprite": "fairy9a",
+      "actChance": 2,
+      "actSound": "putput"
+    },
+    "float2": {
+      "id": "float2",
+      "name": "Floater",
+      "class": 0,
+      "sprite": "fairy9",
+      "deathSprite": "fairy9d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 400,
+      "intel": 10,
+      "worth": 100,
+      "gift": 4,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ]
+    },
+    "pale": {
+      "id": "pale",
+      "name": "Our Paley Friend",
+      "class": 0,
+      "sprite": "fairy10",
+      "deathSprite": "fairy10d1",
+      "frames": 8,
+      "hp": 5,
+      "speed": 50,
+      "intel": 3,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie8"
+      ],
+      "actSprite": "fairy10a",
+      "actChance": 2
+    },
+    "bikini": {
+      "id": "bikini",
+      "name": "Bikini Babe",
+      "class": 0,
+      "sprite": "fairy8",
+      "deathSprite": "fairy8d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 500,
+      "intel": 4,
+      "worth": 200,
+      "gift": 0,
+      "dieSounds": [
+        "fdie8",
+        "fdie7"
+      ]
+    }
+  }
+}

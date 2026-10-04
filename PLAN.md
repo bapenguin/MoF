@@ -1,0 +1,100 @@
+# Massacre of the Fairies: Browser Port Plan
+
+The original is a VB6 + DirectX 7 game (P&P Enterprises, v0.9.6, "2004"): a fullscreen 1024×768 shooting gallery. Fairies fly around, you click to shoot them, and you have 9 weapons, data-driven levels, weather, and per-user stats.
+
+## 1. What's in the original
+
+| File | Role | Port target |
+|---|---|---|
+| `modfairy.bas` (~1,800 lines) | All gameplay: fairies, weapons, scoring, splats, gifts, level loader, game loop, user profiles | `src/game/*`: the core of the port |
+| `fmod.bas` | DirectDraw wrapper: sprite registry, `putpic` blits, color-key transparency, per-pixel hit test, background/foreground/top bar, rain/snow, text | `src/engine/renderer.ts`, `sprites.ts`, `weather.ts` |
+| `DSound.bas` | DirectSound wrapper: load/play/loop/stop, stereo pan by x | `src/engine/audio.ts` (Web Audio) |
+| `frmmain.frm` (`gamemain`) | Fullscreen game window: mouse down/up/move, keys 1–9, Q quit, **F1 cheat (all ammo = 1000)** | `src/engine/input.ts` |
+| `test.frm` (`Form2`, startup) | Main menu, login/new user, stats viewer, Hall of Fame, options, adventure select (4 scenarios, unlocked progressively) | HTML/CSS overlay screens |
+| `mmode.frm` | Massacre Mode builder: pick weapons + ammo, fairies + counts, background, foreground, music, weather, time; "Random Massacre" | HTML form → builds level config in memory |
+| `wild.txt`, `des.txt`, `snow.txt`, `fland.txt` | 4 adventure scenarios (5–9 levels each) plus fairy definitions | `data/scenarios/*.json` |
+| `mmode.txt` | Master fairy roster for Massacre mode (15 types) | `data/fairies.json` |
+| `*.guy`, `defaults.mof` | User save files (weakly "hashed" password + stats), sound options | `localStorage` |
+| `mmenu.Frm`, `hscore.Frm`, `joe.frm`, `main.frm` | Older VB4 leftovers, **not in `mof.vbp`** | Ignore |
+
+**Assets:** 30 backgrounds (1024×768), 7 foregrounds (1024×150), about 90 sprite sheets, and 50 WAVs (7 music tracks). All images are 24-bit BMP with **black (0,0,0) as the transparency key**. Sprite sheets are horizontal strips (`fpic` defaults to 8 frames, set by `fcount`). "Innocent" walkers and flyers (class 1 and 3) have 2 rows, one per facing direction. That's what `makeinnocent` does.
+
+### Gameplay rules to port faithfully
+- **Fairy classes:** 0 = fairy (bounces, randomly re-steers based on `intel`), 1 = walker (ground, innocent), 2 = sitter (static, e.g. Screech Owl), 3 = flyer (horizontal, innocent). Killing innocents plays "dumbass.wav" and usually costs points (negative `worth`).
+- **States:** ALIVE → ACTING (alt-anim `apic` for 1s, chance `rprob`/1000 per tick) → DYING (falls with gravity through the `dpic` frames) → DEAD. In Massacre mode, dead fairies respawn.
+- **Weapons:** 1 Pistol (infinite, pixel-accurate), 2 Shotgun (blast r=70, 1.5s), 3 Machine Gun (hold to fire, pixel), 4 Howitzer (hold to fire, blast r=100), 5 Fairy Mines (chain-reacting proximity mines with knockback), 6 Death Bus (drives across the bottom), 7 Ion o' Death (vertical beam), 8 Piano Man (falls and splats), 9 Black Hole (gravity well, 8–13s).
+- **Hit test:** pistol and machine gun do a per-pixel check against the current frame (non-black pixel = hit). Blast weapons use a radius and apply knockback.
+- **Gifts:** killed fairies with `gift=N` drop ammo crates that fall. Shooting a crate collects it.
+- **Scoring:** floating score sprites (25/50/100/200/500/1000/0), a rolling score counter, accuracy, rank = damage × accuracy%, and kill streaks.
+- **Flow:** each level is timed. Clear all class-0 fairies to see a round summary (`roundinfo.bmp`), then load `next`. When time runs out you see a game-over screen. Finishing a scenario unlocks the next one (`worth` → `guy.scenario`).
+
+## 2. Bugs and quirks found (fix or preserve?)
+
+1. **`des.txt` uses `foreground=`** but the parser reads `fground`, so the desert foregrounds never drew. Fix in the JSON conversion.
+2. **Gift pickup has no lower-bound check** (`x - loc.x < size` only), so any click above or left of a falling crate collects it. Fix.
+3. **Stereo panning is broken.** `pan > 512 And pan < 0` can never be true, so sounds never pan right. Fix with a proper `StereoPannerNode`.
+4. **Snow is invisible.** `dosnow` never moves flakes down, and its draw call is commented out. Implement it properly.
+5. **Stats screen mislabels weapons 3 and 4** (calls #3 Howitzer, but #3 is the Machine Gun). Fix.
+6. **Frame-rate-dependent physics.** Velocity damping `*0.9`, splat movement, mine/piano animation and other per-loop logic all ran in an uncapped busy loop. Port with a **fixed 60 Hz sim step** and tune to feel right.
+7. The `size=` key in fairy data is ignored, because size comes from the sprite height. Keep that behavior.
+8. Profile "password hash" is a trivial character shift. Drop passwords and use local profiles (see §4).
+9. **`fland.txt` stairway level spawns `blue`**, but that scenario never defines `blue`, so those fairies never appeared. `npm run data` warns about it. Decide whether to add the `blue` definition from `wild.txt`.
+
+## 3. Tech approach
+
+- **TypeScript + Vite**, plain **Canvas 2D** (no engine). The game is simple blits, and a 1:1 port of `putpic`/`BltFast` stays closest to the original. Phaser would be overkill and would fight the original's structure.
+- **Fixed 1024×768 logical canvas**, CSS-scaled to fit the window (letterboxed). Pointer coordinates are mapped back to logical space. Fullscreen button via the Fullscreen API.
+- **Game loop:** `requestAnimationFrame` with a fixed-timestep accumulator. The VB code's blocking waits (`waitforclick`, `ScoreAndWait`, `DoEvents` loops) become an explicit **state machine**: `Menu → Profile → ScenarioSelect | MassacreSetup → Playing → RoundSummary → … → Victory | GameOver`.
+- **Audio:** Web Audio API, all SFX decoded up front per level, music and ambient loops, pan from x. Audio unlocks on the first user click (browser autoplay rules).
+- **Hit masks:** at load, read each sprite sheet's alpha into a `Uint8Array` so per-pixel hit tests stay cheap.
+- **UI screens** (menus, Massacre builder, stats) are HTML/CSS overlays styled after the original art (`bforrest.bmp` backdrop, `woodback.bmp`, `mofhof.bmp`, and so on). The in-game HUD is drawn on the canvas at the original `DoText` positions.
+
+## 4. Data and saves
+
+- **Asset pipeline script** (`tools/convert-assets.mjs`, using `sharp` plus `ffmpeg`). Every file gets a lowercase, URL-safe key (`SPLAT!.wav` → `splat`, `city number 2.bmp` → `city-number-2`), and the data converter uses the same keys:
+  - (`sharp` can't read BMP, so `tools/lib/bmp.mjs` decodes them.) Sprite and foreground BMPs → PNG with black keyed to alpha (exact `#000000` only, matching DirectDraw color-key behavior).
+  - Background BMPs → WebP/JPEG. That's about 70 MB → about 3 MB.
+  - WAV → MP3 (one format every browser decodes). All 51 sounds come to about 6 MB. MP3 adds a tiny gap on loops, so music/rain loops may need trimming later.
+  - `intro.avi` (38 MB) → optional MP4 intro, or drop it.
+  - Scenario `.txt` → JSON (one-time conversion script that reuses the original `<tag>` / `key=value` grammar).
+- **Profiles:** `localStorage` keyed by name, same fields as `userinfo` (score, shots, hits, streak, levels, scenario unlocked, weapon usage, kills per fairy type). Hall of Fame scans all local profiles, as `GetHigh` did. Optional: a one-time importer for the old `.guy` files.
+- **Later / optional:** an online leaderboard (Cloudflare Worker / Supabase). It's not needed for v1.
+
+## 5. Proposed repo layout
+
+```
+/legacy/              original VB source + data files (read-only reference)
+/tools/               asset + data conversion scripts
+/public/assets/       converted PNG/WebP/OGG (committed, small)
+/src/engine/          loop, renderer, sprites, audio, input, weather
+/src/game/            fairies, weapons, level, scoring, gifts, splats, profiles
+/src/ui/              menu, profile, scenario select, massacre builder, stats, HoF, options
+/data/                scenarios/*.json, fairies.json, weapons.json
+```
+
+`.gitignore`: `MoF.exe`, `MoF.pdb`, `crash.log` (566 KB), `*.guy` (personal stats + password hashes), `pspbrwse.jbf`, `win32.tlb`, `*.lnk`, `node_modules`, `dist`.
+The raw BMP/WAV/AVI originals total about 180 MB. Either keep them out of git (convert locally) or put them under **Git LFS** in `/legacy/raw`.
+
+## 6. Phases
+
+| # | Milestone | Done when |
+|---|---|---|
+| 0 | Repo scaffold, Vite + TS, asset + data conversion scripts | `npm run assets` produces PNG/WebP/OGG + JSON. GitHub Pages deploy via Actions |
+| 1 | Engine: scaled canvas, sprite sheets, loader, input, audio, fixed-step loop | A background + one animated fairy + click sound |
+| 2 | Core gameplay: all 4 fairy classes, states, pistol/shotgun/MG/howitzer, splats/gore, score popups, HUD/top bar, timer, level → next | `wild.txt` fully playable start to finish |
+| 3 | Special weapons: mines (chain), bus, ion, piano, black hole, and gifts/ammo drops | All 9 weapons + F1 cheat work |
+| 4 | Atmosphere: foregrounds, rain, (fixed) snow, ambient sounds, music per level | All 4 scenarios look and sound right |
+| 5 | Screens: main menu, profiles, scenario select w/ unlocks, round summary, win/lose, stats, Hall of Fame, options | Full adventure loop with persistence |
+| 6 | Massacre Mode builder incl. Random Massacre | Custom games launch and respawn correctly |
+| 7 | Polish: pause/Esc, fullscreen, loading screen, touch support (tap = shoot, weapon bar), performance pass | Plays well on desktop + tablet |
+
+Phases 0–2 are the bulk of the risk. Everything after that is additive.
+
+### Status
+- **Phase 0: done.** Scaffold, `npm run assets` (181 files, ~180 MB → 16.5 MB), `npm run data` (4 scenarios + Massacre roster → `data/`), Pages workflow, smoke-test page (scaled canvas, background, keyed animated sprite, panned shot sound).
+
+## 7. Before publishing publicly
+
+- Make sure you have rights to the **music and SFX** (`music1–7.wav`, sound clips). Swap in CC0 audio if unsure.
+- Some fairy names and internal IDs are crude. Decide whether to keep them as-is for a public repo.
+- About a dozen assets look unused (e.g. `BIGfart.wav`, `hmmfart.wav`, `hell.wav`, `fairy5.bmp`, `minime.bmp`, `usstats.bmp`). The conversion script can report and skip unreferenced files.

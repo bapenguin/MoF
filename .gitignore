@@ -1,0 +1,22 @@
+.claude/launch.json
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+
+# Original build outputs, logs and personal save files
+legacy/MoF.exe
+legacy/MoF.pdb
+legacy/crash.log
+legacy/*.guy
+legacy/**/pspbrwse.jbf
+legacy/win32.tlb
+legacy/**/*.lnk
+
+# Raw media (~180 MB). Kept locally as the source for `npm run assets`;
+# the converted, web-sized versions in public/assets are committed instead.
+legacy/**/*.bmp
+legacy/**/*.wav
+legacy/**/*.WAV
+legacy/**/*.avi
+legacy/**/*.psp

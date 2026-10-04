@@ -1,0 +1,373 @@
+{
+  "id": "des",
+  "title": "The Desert after Dinner",
+  "description": "After the storm you find yourself stranded on a beach. Ahead you see a volcanic Island. You decide to see what's ahead, but wait, the fairies have followed you here too...",
+  "worth": 2,
+  "start": "beach",
+  "ammo": {
+    "1": 999,
+    "2": 25,
+    "3": 100
+  },
+  "levels": {
+    "beach": {
+      "id": "beach",
+      "name": "Sunshine, Waves, and FAIRIES!",
+      "bg": "beach",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "volcano",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 9
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ],
+      "ambient": "gull"
+    },
+    "volcano": {
+      "id": "volcano",
+      "name": "Lava Galore",
+      "bg": "volcanic",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "desert",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 15
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ]
+    },
+    "desert": {
+      "id": "desert",
+      "name": "Long",
+      "bg": "desert",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "desert2",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 25
+        },
+        {
+          "type": "float2",
+          "count": 1
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ]
+    },
+    "desert2": {
+      "id": "desert2",
+      "name": "It's getting Late",
+      "bg": "desert2",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "night",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 17
+        },
+        {
+          "type": "float",
+          "count": 2
+        },
+        {
+          "type": "float2",
+          "count": 1
+        },
+        {
+          "type": "white2",
+          "count": 2
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ]
+    },
+    "night": {
+      "id": "night",
+      "name": "Attack at camp",
+      "bg": "nidesert",
+      "music": "music6",
+      "timeLimit": 50,
+      "next": "citygates",
+      "spawns": [
+        {
+          "type": "float",
+          "count": 20
+        },
+        {
+          "type": "white2",
+          "count": 2
+        },
+        {
+          "type": "bikini",
+          "count": 2
+        }
+      ]
+    },
+    "citygates": {
+      "id": "citygates",
+      "name": "City Gates",
+      "bg": "citygates",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "city",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 5
+        },
+        {
+          "type": "white2",
+          "count": 1
+        },
+        {
+          "type": "float",
+          "count": 8
+        }
+      ]
+    },
+    "city": {
+      "id": "city",
+      "name": "Sunshine, Waves, and FAIRIES!",
+      "bg": "city",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "desertplain",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 5
+        },
+        {
+          "type": "float",
+          "count": 5
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ]
+    },
+    "desertplain": {
+      "id": "desertplain",
+      "name": "Sunshine, Waves, and FAIRIES!",
+      "bg": "desertplain",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "Airport1",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 5
+        },
+        {
+          "type": "float",
+          "count": 5
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ],
+      "foreground": "fore7"
+    },
+    "Airport1": {
+      "id": "Airport1",
+      "name": "Sunshine, Waves, and FAIRIES!",
+      "bg": "airfield",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "Airport2",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 5
+        },
+        {
+          "type": "white2",
+          "count": 5
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ],
+      "foreground": "fore7"
+    },
+    "Airport2": {
+      "id": "Airport2",
+      "name": "Sunshine, Waves, and FAIRIES!",
+      "bg": "airfield2",
+      "music": "music5",
+      "timeLimit": 50,
+      "next": "end",
+      "spawns": [
+        {
+          "type": "white",
+          "count": 5
+        },
+        {
+          "type": "white2",
+          "count": 5
+        },
+        {
+          "type": "bikini",
+          "count": 8
+        }
+      ]
+    }
+  },
+  "fairies": {
+    "white": {
+      "id": "white",
+      "name": "Snow White",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 150,
+      "intel": 10,
+      "worth": 25,
+      "gift": 0,
+      "dieSounds": [
+        "fdie4",
+        "fdie4"
+      ]
+    },
+    "white2": {
+      "id": "white2",
+      "name": "Whitey Ford",
+      "class": 0,
+      "sprite": "fairy1",
+      "deathSprite": "fairy1d1",
+      "frames": 8,
+      "hp": 3,
+      "speed": 320,
+      "intel": 15,
+      "worth": 50,
+      "gift": 2,
+      "dieSounds": [
+        "fdie1",
+        "fdie4"
+      ]
+    },
+    "glow": {
+      "id": "glow",
+      "name": "Great Balls of Fairy",
+      "class": 0,
+      "sprite": "fairy4",
+      "deathSprite": "fairy4d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 350,
+      "intel": 5,
+      "worth": 50,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie3"
+      ]
+    },
+    "electric": {
+      "id": "electric",
+      "name": "Elmo the Electro-Fairy",
+      "class": 0,
+      "sprite": "fairy6",
+      "deathSprite": "fairy6d1",
+      "frames": 8,
+      "hp": 10,
+      "speed": 300,
+      "intel": 15,
+      "worth": 100,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ]
+    },
+    "float": {
+      "id": "float",
+      "name": "Floater",
+      "class": 0,
+      "sprite": "fairy9",
+      "deathSprite": "fairy9d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 400,
+      "intel": 10,
+      "worth": 1000,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ],
+      "actSprite": "fairy9a",
+      "actChance": 2,
+      "actSound": "putput"
+    },
+    "float2": {
+      "id": "float2",
+      "name": "Floater",
+      "class": 0,
+      "sprite": "fairy9",
+      "deathSprite": "fairy9d1",
+      "frames": 8,
+      "hp": 1,
+      "speed": 400,
+      "intel": 10,
+      "worth": 100,
+      "gift": 4,
+      "dieSounds": [
+        "fdie1",
+        "fdie2"
+      ]
+    },
+    "bikini": {
+      "id": "bikini",
+      "name": "Bikini Babe",
+      "class": 0,
+      "sprite": "fairy8",
+      "deathSprite": "fairy8d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 500,
+      "intel": 4,
+      "worth": 200,
+      "gift": 0,
+      "dieSounds": [
+        "fdie8",
+        "fdie7"
+      ]
+    }
+  }
+}
