@@ -17,12 +17,33 @@ const COMMON_SPRITES: Array<[string, number, number]> = [
   ['win2', 1, 1],
   ['splat', 4, 1],
   ['gore', 16, 1],
+  ['fmine', 8, 1],
+  ['fmined1', 8, 1],
+  ['bhole', 4, 1],
+  ['ion', 9, 1],
+  ['piano', 2, 1],
+  ['p1d1', 4, 1],
+  ['busanim', 2, 1],
   ...['0', '25', '50', '100', '200', '500', '1000'].map((k): [string, number, number] => [k, 8, 1]),
   ...WEAPONS.map((w): [string, number, number] => [w.icon, 1, 1]),
   ...Object.values(GIFTS).map((g): [string, number, number] => [g.sprite, 1, 1]),
 ];
 
-const COMMON_SOUNDS = ['switch', 'dumbass', 'yoink', 'win', 'die', 'ocean', ...WEAPONS.flatMap((w) => (w.sound ? [w.sound] : []))];
+const COMMON_SOUNDS = [
+  'switch',
+  'dumbass',
+  'yoink',
+  'win',
+  'die',
+  'ocean',
+  'arm',
+  'boom',
+  'bus',
+  'splat',
+  'ionzap',
+  'pfall',
+  'pianobang',
+  ...WEAPONS.flatMap((w) => (w.sound ? [w.sound] : []))];
 
 export function scenarioTasks(scenario: ScenarioDef): Task[] {
   const sprites = new Map<string, [number, number]>();

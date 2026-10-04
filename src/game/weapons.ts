@@ -45,11 +45,6 @@ export function isBlast(w: WeaponDef): boolean {
   return w.type === WeaponType.Blaster || w.type === WeaponType.BlasterRapid;
 }
 
-// Special weapons arrive in Phase 3. Until then they can't be selected.
-export function isImplemented(w: WeaponDef): boolean {
-  return w.type <= WeaponType.BlasterRapid;
-}
-
 // Ammo crates dropped by fairies with gift=N (Spawngift / CheckGiftHit).
 export const GIFTS: Record<number, { sprite: string; weapon: number; ammo: number }> = {
   1: { sprite: 'shotammo', weapon: 2, ammo: 8 },

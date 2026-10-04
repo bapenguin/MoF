@@ -9,7 +9,7 @@ import { audio } from '../engine/audio';
 import { getSheet, type SpriteSheet } from '../engine/sprites';
 import { SCREEN_W, SCREEN_H } from '../engine/screen';
 import { FairyClass, spriteRows, type FairyDef, type LevelDef, type ScenarioDef } from './data';
-import { GIFTS, PISTOL, WEAPONS, isBlast, isImplemented, type WeaponDef } from './weapons';
+import { GIFTS, PISTOL, WEAPONS, WeaponType, isBlast, type WeaponDef } from './weapons';
 
 export const SCREENTOP = 83; // height of the top HUD bar
 const SPRITE_SIZE = 75; // fmod.bas SpriteSize, used for spawn placement
@@ -75,6 +75,38 @@ interface Gift {
   sheet: SpriteSheet;
 }
 
+// Special weapons (FireMine/FireHole/FireIon/FirePiano/FireBus and their Do*/LookOutFor* routines).
+const MAX_MINES = 10; // also the black-hole limit
+const MINE_RANGE = 500; // knockback and chain-reaction radius
+const MINE_KILL_RANGE = 300;
+const BUS_SPEED = 400; // px/s
+const HOLE_PULL = 9000;
+
+interface Mine {
+  x: number;
+  y: number;
+  sheet: SpriteSheet;
+  frame: number;
+  armed: boolean; // false once it's exploding
+}
+
+interface Hole {
+  x: number;
+  y: number;
+  sheet: SpriteSheet;
+  frame: number; // 0-7, drawn at half speed over 4 sprite frames
+  expires: number;
+}
+
+interface Piano {
+  x: number;
+  y: number;
+  vy: number; // px per update
+  sheet: SpriteSheet;
+  frame: number;
+  falling: boolean; // false once it has smashed into the ground
+}
+
 const SCORE_SPRITES: Record<number, string> = { 25: '25', 50: '50', 100: '100', 200: '200', 500: '500', 1000: '1000' };
 
 // State that carries across levels for one play-through (pstats, ammo, weapon, streak).
@@ -107,7 +139,7 @@ export class Session {
   // switchgun: only weapons with ammo can be selected.
   switchWeapon(num: number): void {
     const w = WEAPONS[num - 1];
-    if (!w || this.ammo[num] <= 0 || !isImplemented(w)) return;
+    if (!w || this.ammo[num] <= 0) return;
     this.weapon = num;
     audio.play('switch');
   }
@@ -135,6 +167,11 @@ export class World {
   private scores: ScorePopup[] = [];
   private nextScore = 0;
   private gifts: Gift[] = [];
+  private mines: Mine[] = [];
+  private holes: Hole[] = [];
+  private ion: { x: number; frame: number } | null = null;
+  private piano: Piano | null = null;
+  private bus: { x: number; y: number; frame: number } | null = null;
   private frameClock = 0;
   private bg: SpriteSheet;
   private fg: SpriteSheet | null;
@@ -221,6 +258,10 @@ export class World {
     const advance = this.frameClock >= FRAME_MS;
     if (advance) this.frameClock -= FRAME_MS;
 
+    if (this.mines.length) {
+      for (const f of this.fairies) if (f.state !== State.Dead) this.checkMines(f);
+    }
+
     for (const f of this.fairies) {
       if (f.state === State.Dead) continue;
 
@@ -229,6 +270,13 @@ export class World {
       if (Math.abs(f.my) > f.speed) f.my *= 0.9;
       if (!(Math.abs(f.mx) > f.speed || Math.abs(f.my) > f.speed)) {
         if (f.state === State.Alive && Math.random() * 100 + 1 < f.def.intel) this.turn(f);
+      }
+
+      if (f.state !== State.Dying) {
+        if (this.bus) this.checkBus(f);
+        if (this.ion) this.checkIon(f);
+        if (this.piano) this.checkPiano(f);
+        if (this.holes.length) this.checkHoles(f);
       }
 
       if (f.state === State.Acting) {
@@ -275,6 +323,7 @@ export class World {
       }
     }
 
+    this.updateSpecials(dt, advance);
     this.updateSplats(dt);
     for (const g of this.gifts) g.y += dt * GIFT_SPEED;
     this.gifts = this.gifts.filter((g) => g.y + g.sheet.frameH <= SCREEN_H);
@@ -307,12 +356,30 @@ export class World {
     const w = s.weaponDef;
     if (s.ammo[w.num] <= 0) return false;
     if (this.now - s.lastShot[w.num] < w.delay) return false;
+    // Only one bus, ion beam or piano at a time. The original still spent the
+    // ammo when you fired another; here the trigger just doesn't respond.
+    if ((w.type === WeaponType.Bus && this.bus) || (w.type === WeaponType.Ion && this.ion) || (w.type === WeaponType.Piano && this.piano)) {
+      return false;
+    }
 
     s.weaponShots[w.num]++;
     s.shots++;
     this.shots++;
     if (w.num !== PISTOL) s.ammo[w.num]--;
     s.lastShot[w.num] = this.now;
+
+    switch (w.type) {
+      case WeaponType.Bus:
+        return this.fireBus();
+      case WeaponType.Mine:
+        return this.fireMine(x, y);
+      case WeaponType.Ion:
+        return this.fireIon(x);
+      case WeaponType.Piano:
+        return this.firePiano(x);
+      case WeaponType.Hole:
+        return this.fireHole(x, y);
+    }
 
     this.checkGiftHit(x, y);
     audio.play(w.sound, { x });
@@ -368,6 +435,191 @@ export class World {
     s.kills[f.def.name] = (s.kills[f.def.name] ?? 0) + 1;
     this.addScore(f.x + f.size, f.y, f.def.worth);
     if (f.def.gift) this.spawnGift(f.def.gift, f.x, f.y);
+  }
+
+  // ---- Fairy Mines: proximity mines with a huge blast that chain-reacts ----
+
+  private fireMine(x: number, y: number): boolean {
+    if (this.mines.length >= MAX_MINES) return true; // ammo still spent, as in the original
+    const sheet = getSheet('fmine');
+    const half = sheet.frameH / 2;
+    this.mines.push({ x: x - half, y: y - half, sheet, frame: 0, armed: true });
+    audio.play('arm', { x });
+    return true;
+  }
+
+  // The original sized mines by frame height on both axes; kept for identical ranges.
+  private mineCenter(m: Mine): [number, number] {
+    return [m.x + m.sheet.frameH / 2, m.y + m.sheet.frameH / 2];
+  }
+
+  private checkMines(f: Fairy): void {
+    for (const m of this.mines) {
+      if (!m.armed || f.state !== State.Alive) continue;
+      const [mx, my] = this.mineCenter(m);
+      const d = Math.hypot(mx - (f.x + f.size / 2), my - (f.y + f.size / 2));
+      if (d < (f.size + m.sheet.frameH) / 2) this.blowUpMine(m);
+    }
+  }
+
+  private blowUpMine(m: Mine): void {
+    audio.play('boom', { x: m.x });
+    m.armed = false;
+    m.frame = 0;
+    m.sheet = getSheet('fmined1');
+    const [cx, cy] = this.mineCenter(m);
+    for (const f of this.fairies) {
+      if (f.state === State.Dead) continue;
+      const dx = cx - (f.x + f.size / 2);
+      const dy = cy - (f.y + f.size / 2);
+      const d = Math.hypot(dx, dy);
+      if (d >= MINE_RANGE) continue;
+      f.mx -= (Math.sign(dx) * MINE_RANGE - dx) * 3;
+      f.my -= (Math.sign(dy) * MINE_RANGE - dy) * 3;
+      if (f.state === State.Alive && d < MINE_KILL_RANGE) this.hurt(f, 25, m.x);
+    }
+    for (const other of this.mines) {
+      if (!other.armed) continue;
+      const [ox, oy] = this.mineCenter(other);
+      if (Math.hypot(cx - ox, cy - oy) < MINE_RANGE) this.blowUpMine(other);
+    }
+  }
+
+  // ---- Black Hole: sucks fairies in and grinds them up for 8-13 seconds ----
+
+  private fireHole(x: number, y: number): boolean {
+    if (this.holes.length >= MAX_MINES) return true;
+    const sheet = getSheet('bhole');
+    this.holes.push({
+      x: x - sheet.frameW / 2,
+      y: y - sheet.frameH / 2,
+      sheet,
+      frame: 0,
+      expires: this.now + Math.random() * 5000 + 8000,
+    });
+    return true;
+  }
+
+  private checkHoles(f: Fairy): void {
+    for (const h of this.holes) {
+      if (f.state === State.Dying) return;
+      let dx = f.x + f.sheet.frameW / 2 - (h.x + h.sheet.frameW / 2);
+      let dy = f.y + f.sheet.frameH / 2 - (h.y + h.sheet.frameH / 2);
+      const d = Math.hypot(dx, dy);
+      // Pull strength falls off with distance on each axis (LookOutForTheSingularity).
+      dx += Math.sign(dx) * d;
+      dy += Math.sign(dy) * d;
+      if (Math.abs(dx) < 20) dx = Math.sign(dx) * 20;
+      if (Math.abs(dy) < 20) dy = Math.sign(dy) * 20;
+      if (dx !== 0) f.mx -= HOLE_PULL / dx;
+      if (dy !== 0) f.my -= HOLE_PULL / dy;
+      if (Math.abs(dx) < 50 && Math.abs(dy) < 50) this.hurt(f, 5, h.x);
+    }
+  }
+
+  // ---- Ion o' Death: a beam straight down from the top bar ----
+
+  // The original put the beam's left edge at the cursor, so it landed to the
+  // right of where you aimed. Centred here (same for the piano).
+  private fireIon(x: number): boolean {
+    this.ion = { x: x - getSheet('ion').frameW / 2, frame: 0 };
+    audio.play('ionzap', { x });
+    return true;
+  }
+
+  private checkIon(f: Fairy): void {
+    const w = getSheet('ion').frameW;
+    if (Math.abs(f.x + f.size / 2 - (this.ion!.x + w / 2)) < (f.size + w) / 2) this.hurt(f, 50, this.ion!.x);
+  }
+
+  // Beam grows over 9 frames, flickers, then shrinks back (DoIon).
+  private ionFrame(frame: number): number {
+    if (frame < 9) return frame;
+    if (frame < 25) return 7 + (frame % 2);
+    if (frame < 33) return 33 - frame;
+    return 0;
+  }
+
+  // ---- Piano Man: drops a piano from the top of the screen ----
+
+  private firePiano(x: number): boolean {
+    const sheet = getSheet('piano');
+    this.piano = { x: x - sheet.frameW / 2, y: SCREENTOP - sheet.frameH, vy: 50, sheet, frame: 0, falling: true };
+    audio.play('pfall', { x });
+    return true;
+  }
+
+  private checkPiano(f: Fairy): void {
+    const p = this.piano!;
+    const { frameW: w, frameH: h } = p.sheet;
+    if (Math.abs(f.x + f.size / 2 - (p.x + w / 2)) < w / 2 && Math.abs(f.y + f.size / 2 - (p.y + h / 2)) < h / 2) {
+      this.hurt(f, 25, p.x);
+      audio.play('pianobang', { x: p.x });
+    }
+  }
+
+  // ---- Death Bus: drives along the bottom of the screen ----
+
+  private fireBus(): boolean {
+    audio.play('bus');
+    const sheet = getSheet('busanim');
+    this.bus = { x: -sheet.frameW, y: SCREEN_H - sheet.frameH, frame: 0 };
+    return true;
+  }
+
+  private checkBus(f: Fairy): void {
+    const b = this.bus!;
+    if (f.y + f.size > b.y && f.x > b.x && f.x - b.x < getSheet('busanim').frameW) {
+      f.mx += 450;
+      f.my -= 450;
+      audio.play('splat', { x: f.x });
+      this.hurt(f, 50, f.x);
+    }
+  }
+
+  // The Do* routines: advance each special weapon one update.
+  private updateSpecials(dt: number, advance: boolean): void {
+    if (this.bus) {
+      this.bus.frame = (this.bus.frame + 1) % 2;
+      this.bus.x += BUS_SPEED * dt;
+      if (this.bus.x >= SCREEN_W) this.bus = null;
+    }
+
+    this.mines = this.mines.filter((m) => {
+      if (!m.armed && m.frame === 7) return false;
+      m.frame = (m.frame + 1) % 8;
+      return true;
+    });
+
+    if (this.ion && ++this.ion.frame > 33) this.ion = null;
+
+    const p = this.piano;
+    if (p?.falling) {
+      p.y += p.vy;
+      p.vy += dt * GORE_GRAVITY;
+      p.frame = (p.frame + 1) % 2;
+      if (p.y + p.sheet.frameH >= SCREEN_H) {
+        p.sheet = getSheet('p1d1');
+        p.frame = 0;
+        p.y = SCREEN_H - p.sheet.frameH;
+        p.falling = false;
+        this.addSplats(p.x + p.sheet.frameW / 2, SCREEN_H - 10, 35);
+      }
+    } else if (p && ++p.frame >= 4) {
+      audio.play('pianobang', { x: p.x });
+      this.piano = null;
+    }
+
+    this.holes = this.holes.filter((h) => this.now <= h.expires);
+    if (advance) for (const h of this.holes) h.frame = (h.frame + 1) % 8;
+  }
+
+  private renderSpecials(ctx: CanvasRenderingContext2D): void {
+    if (this.bus) getSheet('busanim').draw(ctx, this.bus.x, this.bus.y, this.bus.frame);
+    for (const m of this.mines) m.sheet.draw(ctx, m.x, m.y, m.frame);
+    if (this.ion) getSheet('ion').draw(ctx, this.ion.x, SCREENTOP, this.ionFrame(this.ion.frame));
+    if (this.piano) this.piano.sheet.draw(ctx, this.piano.x, this.piano.y, this.piano.frame);
+    for (const h of this.holes) h.sheet.draw(ctx, h.x, h.y, Math.floor(h.frame / 2));
   }
 
   // Innocents face left on row 1. Single-row sheets (e.g. act sprites) stay on row 0.
@@ -443,6 +695,7 @@ export class World {
     for (const f of this.fairies) {
       if (f.state !== State.Dead) f.sheet.draw(ctx, f.x, f.y, f.frame, this.row(f));
     }
+    this.renderSpecials(ctx);
     this.fg?.draw(ctx, 0, SCREEN_H - this.fg.frameH);
     this.topbar.draw(ctx, 0, 0);
 
