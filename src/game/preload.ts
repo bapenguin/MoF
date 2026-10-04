@@ -36,6 +36,7 @@ const COMMON_SOUNDS = [
   'win',
   'die',
   'ocean',
+  'rain',
   'arm',
   'boom',
   'bus',

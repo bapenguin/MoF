@@ -10,6 +10,8 @@ import { getSheet, type SpriteSheet } from '../engine/sprites';
 import { SCREEN_W, SCREEN_H } from '../engine/screen';
 import { FairyClass, spriteRows, type FairyDef, type LevelDef, type ScenarioDef } from './data';
 import { GIFTS, PISTOL, WEAPONS, WeaponType, isBlast, type WeaponDef } from './weapons';
+import { Weather } from './weather';
+import { settings } from './settings';
 
 export const SCREENTOP = 83; // height of the top HUD bar
 const SPRITE_SIZE = 75; // fmod.bas SpriteSize, used for spawn placement
@@ -176,6 +178,7 @@ export class World {
   private bg: SpriteSheet;
   private fg: SpriteSheet | null;
   private topbar: SpriteSheet;
+  readonly weather: Weather | null;
 
   constructor(
     readonly session: Session,
@@ -185,6 +188,8 @@ export class World {
     this.bg = getSheet(level.bg, 'bg');
     this.fg = level.foreground ? getSheet(level.foreground, 'fg') : null;
     this.topbar = getSheet('topbar');
+    const kind = level.weather;
+    this.weather = settings.weather && (kind === 'rain' || kind === 'snow') ? new Weather(kind) : null;
     this.initFairies(session.scenario);
     const splat = getSheet('splat');
     const gore = getSheet('gore');
@@ -324,6 +329,7 @@ export class World {
     }
 
     this.updateSpecials(dt, advance);
+    this.weather?.update(dt);
     this.updateSplats(dt);
     for (const g of this.gifts) g.y += dt * GIFT_SPEED;
     this.gifts = this.gifts.filter((g) => g.y + g.sheet.frameH <= SCREEN_H);
@@ -696,6 +702,7 @@ export class World {
       if (f.state !== State.Dead) f.sheet.draw(ctx, f.x, f.y, f.frame, this.row(f));
     }
     this.renderSpecials(ctx);
+    this.weather?.render(ctx);
     this.fg?.draw(ctx, 0, SCREEN_H - this.fg.frameH);
     this.topbar.draw(ctx, 0, 0);
 

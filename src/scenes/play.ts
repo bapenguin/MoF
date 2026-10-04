@@ -27,7 +27,7 @@ export class PlayScene implements Scene {
   private levelStart = 0;
   private timeLeft = 0;
   private music?: string;
-  private loopSound?: string;
+  private loopSounds: string[] = [];
 
   constructor(
     private scenario: ScenarioDef,
@@ -56,9 +56,12 @@ export class PlayScene implements Scene {
     this.world = new World(this.session, level, this.engine.now);
     this.music = level.music;
     audio.play(level.music, { channel: 'music', loop: true });
-    // The original special-cased the beach with a looping ocean.
-    this.loopSound = level.bg === 'beach' ? 'ocean' : undefined;
-    audio.play(this.loopSound, { channel: 'ambient', loop: true });
+    // Background loops: rain with rainy weather, and the original special-cased
+    // the beach with a looping ocean.
+    this.loopSounds = [];
+    if (this.world.weather?.kind === 'rain') this.loopSounds.push('rain');
+    if (level.bg === 'beach') this.loopSounds.push('ocean');
+    for (const key of this.loopSounds) audio.play(key, { channel: 'ambient', loop: true });
     this.levelStart = this.engine.now;
     this.timeLeft = level.timeLimit;
     this.setPhase('play');
@@ -103,7 +106,7 @@ export class PlayScene implements Scene {
     if (this.world.cleared) {
       this.session.displayScore = this.session.score;
       audio.stop(this.music);
-      audio.stop(this.loopSound);
+      this.loopSounds.forEach((key) => audio.stop(key));
       audio.play('win');
       this.setPhase('summary');
     }
