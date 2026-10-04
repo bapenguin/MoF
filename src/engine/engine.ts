@@ -27,9 +27,12 @@ export class Engine {
   private scene: Scene | null = null;
   private next: Scene | null = null;
 
-  constructor(readonly canvas: HTMLCanvasElement) {
+  constructor(
+    readonly canvas: HTMLCanvasElement,
+    readonly overlay: HTMLElement,
+  ) {
     this.ctx = canvas.getContext('2d', { alpha: false })!;
-    fitCanvas(canvas);
+    fitCanvas(canvas, overlay);
     this.input = new Input(canvas);
   }
 
@@ -72,6 +75,7 @@ export class Engine {
   private swapScene() {
     if (!this.next) return;
     this.scene?.exit?.();
+    this.overlay.replaceChildren(); // each scene builds its own HTML, if any
     this.scene = this.next;
     this.next = null;
     this.input.takeClicks();

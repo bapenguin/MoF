@@ -641,15 +641,85 @@
       "w": 800,
       "h": 600
     },
+    "hof-panel": {
+      "file": "ui/hof-panel.webp",
+      "w": 1024,
+      "h": 768
+    },
     "joe": {
       "file": "ui/joe.webp",
       "w": 123,
       "h": 113
     },
+    "massacre-bg": {
+      "file": "ui/massacre-bg.webp",
+      "w": 1024,
+      "h": 768
+    },
+    "massacre-logo": {
+      "file": "ui/massacre-logo.webp",
+      "w": 287,
+      "h": 132
+    },
+    "menu-logo": {
+      "file": "ui/menu-logo.webp",
+      "w": 400,
+      "h": 250
+    },
+    "menu-panel": {
+      "file": "ui/menu-panel.webp",
+      "w": 356,
+      "h": 339
+    },
     "mofsplash": {
       "file": "ui/mofsplash.webp",
       "w": 800,
       "h": 548
+    },
+    "options-panel": {
+      "file": "ui/options-panel.webp",
+      "w": 356,
+      "h": 339
+    },
+    "scenario-des": {
+      "file": "ui/scenario-des.webp",
+      "w": 100,
+      "h": 75
+    },
+    "scenario-fland": {
+      "file": "ui/scenario-fland.webp",
+      "w": 100,
+      "h": 75
+    },
+    "scenario-panel": {
+      "file": "ui/scenario-panel.webp",
+      "w": 600,
+      "h": 600
+    },
+    "scenario-snow": {
+      "file": "ui/scenario-snow.webp",
+      "w": 100,
+      "h": 75
+    },
+    "scenario-wild": {
+      "file": "ui/scenario-wild.webp",
+      "w": 100,
+      "h": 75
+    },
+    "stats-face": {
+      "file": "ui/stats-face.webp",
+      "w": 123,
+      "h": 113
+    },
+    "stats-panel": {
+      "file": "ui/stats-panel.webp",
+      "w": 550,
+      "h": 600
+    },
+    "title": {
+      "file": "ui/title.webp",
+      "w": 287,
+      "h": 132
     },
     "wood": {
       "file": "ui/wood.webp",

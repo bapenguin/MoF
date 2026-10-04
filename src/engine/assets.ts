@@ -42,6 +42,16 @@ export function loadImage(group: ImageGroup, key: string): Promise<HTMLImageElem
   return p;
 }
 
+export function imageUrl(group: ImageGroup, key: string): string {
+  const entry = getManifest()[group][key];
+  if (!entry) throw new Error(`missing image ${group}/${key}`);
+  return base + entry.file;
+}
+
+export function hasImage(group: ImageGroup, key: string): boolean {
+  return !!getManifest()[group][key];
+}
+
 export function soundUrl(key: string): string {
   const entry = getManifest().sfx[key];
   if (!entry) throw new Error(`missing sound ${key}`);

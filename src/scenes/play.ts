@@ -9,6 +9,7 @@ import { SCREEN_W, SCREEN_H } from '../engine/screen';
 import type { ScenarioDef } from '../game/data';
 import { GameMode, Session, World } from '../game/world';
 import { WEAPONS, isRapid } from '../game/weapons';
+import { saveProfile, type Profile } from '../game/profiles';
 
 type Phase = 'play' | 'summary' | 'victory' | 'gameover';
 
@@ -28,13 +29,17 @@ export class PlayScene implements Scene {
   private timeLeft = 0;
   private music?: string;
   private loopSounds: string[] = [];
+  // What has already been added to the profile, so each commit adds only the difference.
+  private committed = { score: 0, weaponShots: [] as number[], kills: {} as Record<string, number> };
 
   constructor(
     private scenario: ScenarioDef,
     mode: GameMode,
+    private profile: Profile | null,
     private onExit: (result: GameResult) => void,
   ) {
     this.session = new Session(scenario, mode);
+    this.committed.weaponShots = [...this.session.weaponShots];
   }
 
   enter(engine: Engine): void {
@@ -104,6 +109,7 @@ export class PlayScene implements Scene {
     this.timeLeft = Math.round(this.level.timeLimit - (now - this.levelStart) / 1000);
     if (this.timeLeft <= 0) return this.endGame(false);
     if (this.world.cleared) {
+      this.recordLevel(true);
       this.session.displayScore = this.session.score;
       audio.stop(this.music);
       this.loopSounds.forEach((key) => audio.stop(key));
@@ -117,8 +123,45 @@ export class PlayScene implements Scene {
     for (const w of WEAPONS) this.session.ammo[w.num] = 1000;
   }
 
-  // Out of time, or quit: the end-of-game screen.
+  // userstats + writeguy: fold this level into the player's profile. Like the
+  // original, Massacre games only count towards weapon/fairy/streak stats.
+  // (The original added the whole game's running score after every level,
+  // double counting; here only the new points are added.)
+  private recordLevel(cleared: boolean): void {
+    const p = this.profile;
+    if (!p) return;
+    const s = this.session;
+    if (s.mode === GameMode.Adventure) {
+      p.score += s.score - this.committed.score;
+      p.shots += this.world.shots;
+      p.hits += this.world.hits;
+      p.levelsPlayed++;
+      if (cleared) p.levelsCompleted++;
+    }
+    this.committed.score = s.score;
+    s.weaponShots.forEach((n, i) => {
+      p.weaponShots[i] = (p.weaponShots[i] ?? 0) + n - (this.committed.weaponShots[i] ?? 0);
+    });
+    this.committed.weaponShots = [...s.weaponShots];
+    for (const [name, n] of Object.entries(s.kills)) {
+      p.kills[name] = (p.kills[name] ?? 0) + n - (this.committed.kills[name] ?? 0);
+    }
+    this.committed.kills = { ...s.kills };
+    p.longStreak = Math.max(p.longStreak, s.longStreak);
+    saveProfile(p);
+  }
+
+  // Out of time, or quit (won = false), or the last level cleared (won = true).
   private endGame(won: boolean): void {
+    if (won) {
+      // Beating a scenario unlocks the next one on the scenario select screen.
+      if (this.profile && this.profile.scenario < this.scenario.worth) {
+        this.profile.scenario = this.scenario.worth;
+        saveProfile(this.profile);
+      }
+    } else {
+      this.recordLevel(false);
+    }
     audio.stopAll();
     this.session.displayScore = this.session.score;
     if (this.session.mode === GameMode.Adventure && !won) audio.play('die');

@@ -14,13 +14,82 @@
       }
       #game {
         position: absolute;
-        image-rendering: auto;
         cursor: crosshair;
+      }
+      /* Menu layer: laid out in the original's 1024x768 pixels, scaled to fit. */
+      #ui {
+        position: absolute;
+        width: 1024px;
+        height: 768px;
+        transform-origin: 0 0;
+        pointer-events: none;
+        font-family: Arial, Helvetica, sans-serif;
+        user-select: none;
+      }
+      #ui > * {
+        pointer-events: auto;
+      }
+      #ui .abs {
+        position: absolute;
+      }
+      #ui .panel {
+        position: absolute;
+        background-repeat: no-repeat;
+        overflow: hidden;
+      }
+      #ui .link {
+        position: absolute;
+        cursor: pointer;
+        text-align: center;
+        white-space: nowrap;
+      }
+      #ui .link.disabled {
+        cursor: default;
+        opacity: 0.45;
+      }
+      /* VB command buttons, Windows 98 style. */
+      #ui button {
+        position: absolute;
+        font: 13px Tahoma, 'MS Sans Serif', Arial, sans-serif;
+        color: #000;
+        background: #d4d0c8;
+        border: 2px outset #fff;
+        padding: 0;
+        cursor: pointer;
+      }
+      #ui button:active {
+        border-style: inset;
+      }
+      #ui input[type='text'] {
+        position: absolute;
+        font: 15px Arial, sans-serif;
+        border: 2px inset #fff;
+        padding: 1px 4px;
+        box-sizing: border-box;
+      }
+      #ui label.check {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font: 13px Tahoma, 'MS Sans Serif', Arial, sans-serif;
+        color: #fff;
+        background: rgb(128, 64, 0);
+        cursor: pointer;
+      }
+      #ui .list {
+        position: absolute;
+        overflow-y: auto;
+        font: 14px 'Courier New', monospace;
+        white-space: pre;
+        padding: 4px;
+        box-sizing: border-box;
       }
     </style>
   </head>
   <body>
     <canvas id="game" width="1024" height="768"></canvas>
+    <div id="ui"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
