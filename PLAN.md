@@ -91,6 +91,7 @@ The raw BMP/WAV/AVI originals total about 180 MB. Either keep them out of git (c
 Phases 0–2 are the bulk of the risk. Everything after that is additive.
 
 ### Status
+- **Phase 1: done.** `src/engine/`: `Engine` (fixed 60 Hz step + scene manager, sim clock replaces `GetTickCount`), `SpriteSheet` (frame grid, `putpic`-style draw, lazy per-pixel hit masks using the *current* frame, which fixes the VB frame-0 bug), `audio` (Web Audio, one voice per key like DirectSound buffers, working stereo pan, music/sfx/ambient channels, preload before unlock), `Input` (pointer + keys in logical coords, queued per step), `drawText`/`str` (HUD text à la `DoText`/`Str$`). `src/scenes/`: loading screen (progress + click-to-start audio unlock) and an engine sandbox with all four fairy classes.
 - **Phase 0: done.** Scaffold, `npm run assets` (181 files, ~180 MB → 16.5 MB), `npm run data` (4 scenarios + Massacre roster → `data/`), Pages workflow, smoke-test page (scaled canvas, background, keyed animated sprite, panned shot sound).
 
 ## 7. Before publishing publicly
