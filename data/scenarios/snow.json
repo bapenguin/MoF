@@ -48,7 +48,7 @@
           "count": 30
         },
         {
-          "type": "cavebitch",
+          "type": "uglet",
           "count": 1
         },
         {
@@ -103,7 +103,7 @@
           "count": 10
         },
         {
-          "type": "cavebitch",
+          "type": "uglet",
           "count": 1
         },
         {
@@ -139,9 +139,9 @@
     }
   },
   "fairies": {
-    "gimp": {
-      "id": "gimp",
-      "name": "The Gimp Cat",
+    "scruffy": {
+      "id": "scruffy",
+      "name": "Scruffy the Cat",
       "class": 1,
       "sprite": "gimpcat",
       "deathSprite": "catdie1",
@@ -156,9 +156,9 @@
         "fdie6"
       ]
     },
-    "fatboy": {
-      "id": "fatboy",
-      "name": "Fat Jimmy and his Dog",
+    "jimmy": {
+      "id": "jimmy",
+      "name": "Jimmy and his Dog",
       "class": 1,
       "sprite": "boydog",
       "deathSprite": "boydogd1",
@@ -192,7 +192,7 @@
     },
     "blue": {
       "id": "blue",
-      "name": "'Lil Bastard",
+      "name": "'Lil Rascal",
       "class": 0,
       "sprite": "fairy2",
       "deathSprite": "fairy2d1",
@@ -243,7 +243,7 @@
     },
     "blue2": {
       "id": "blue2",
-      "name": "'Lil Bitch",
+      "name": "'Lil Brat",
       "class": 0,
       "sprite": "fairy2",
       "deathSprite": "fairy2d1",
@@ -312,8 +312,8 @@
       "actChance": 5,
       "actSound": "zzz"
     },
-    "cavebitch": {
-      "id": "cavebitch",
+    "uglet": {
+      "id": "uglet",
       "name": "Uglet",
       "class": 0,
       "sprite": "fairy7",
@@ -331,7 +331,7 @@
     },
     "bikini": {
       "id": "bikini",
-      "name": "Bikini Babe",
+      "name": "Bikini Fairy",
       "class": 0,
       "sprite": "fairy8",
       "deathSprite": "fairy8d1",

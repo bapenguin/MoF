@@ -3,15 +3,27 @@
 
 import { audio } from '../engine/audio';
 
+export type Difficulty = 'easy' | 'normal' | 'hard';
+
 export interface Settings {
   sound: boolean; // master switch: off silences everything, as PlaySounds=0 did
   music: boolean;
   ambient: boolean;
   weather: boolean;
+  shake: boolean; // screen shake on big hits (new)
+  difficulty: Difficulty; // adventure difficulty (new)
 }
 
 const KEY = 'mof.settings';
-const DEFAULTS: Settings = { sound: true, music: true, ambient: true, weather: true };
+const DEFAULTS: Settings = { sound: true, music: true, ambient: true, weather: true, shake: true, difficulty: 'normal' };
+
+// Adventure difficulty: fairy hit points, fairy speed and the level clock.
+// Normal is the original game (with the boss rebalance).
+export const DIFFICULTY: Record<Difficulty, { label: string; hp: number; speed: number; time: number }> = {
+  easy: { label: 'Easy', hp: 0.6, speed: 0.85, time: 1.5 },
+  normal: { label: 'Normal', hp: 1, speed: 1, time: 1 },
+  hard: { label: 'Hard', hp: 1.4, speed: 1.15, time: 0.85 },
+};
 
 function load(): Settings {
   try {

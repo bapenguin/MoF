@@ -3,6 +3,7 @@
 // a trivial character shift, so profiles here are just names.
 
 import { WEAPONS } from './weapons';
+import renames from '../../data/renames.json';
 
 export interface Profile {
   name: string;
@@ -15,6 +16,7 @@ export interface Profile {
   scenario: number; // highest scenario "worth" beaten: unlocks scenario index 0..scenario
   weaponShots: number[]; // index = weapon number (1-9)
   kills: Record<string, number>; // per fairy name
+  stars: Record<string, Record<string, number>>; // best stars (1-3) per scenario id, per level id
 }
 
 const KEY = 'mof.profiles';
@@ -23,9 +25,21 @@ const MAX_NAME = 20;
 
 function readAll(): Record<string, Profile> {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    const all: Record<string, Profile> = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    for (const p of Object.values(all)) migrate(p);
+    return all;
   } catch {
     return {};
+  }
+}
+
+// Kill counts are keyed by fairy name; carry them over to the softened names.
+function migrate(p: Profile): void {
+  const names = renames.names as Record<string, string>;
+  for (const [oldName, newName] of Object.entries(names)) {
+    if (p.kills?.[oldName] == null) continue;
+    p.kills[newName] = (p.kills[newName] ?? 0) + p.kills[oldName];
+    delete p.kills[oldName];
   }
 }
 
@@ -60,7 +74,21 @@ function blank(name: string): Profile {
     scenario: 0,
     weaponShots: new Array(WEAPONS.length + 1).fill(0),
     kills: {},
+    stars: {},
   };
+}
+
+export function levelStars(p: Profile, scenarioId: string, levelId: string): number {
+  return p.stars?.[scenarioId]?.[levelId] ?? 0;
+}
+
+// Keeps the best rating. Returns true if this beat the previous best.
+export function recordStars(p: Profile, scenarioId: string, levelId: string, stars: number): boolean {
+  const best = levelStars(p, scenarioId, levelId);
+  if (stars <= best) return false;
+  p.stars ??= {};
+  (p.stars[scenarioId] ??= {})[levelId] = stars;
+  return true;
 }
 
 // NewGuy: returns the new profile, or the message the original showed.

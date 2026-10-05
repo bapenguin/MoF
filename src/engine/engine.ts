@@ -15,7 +15,9 @@ export interface Scene {
   enter?(engine: Engine): void;
   exit?(): void;
   update(dt: number): void; // dt is always STEP_MS / 1000
-  render(ctx: CanvasRenderingContext2D): void;
+  // alpha (0-1): how far between the last update and the next this frame is,
+  // for smooth motion on displays faster than 60 Hz.
+  render(ctx: CanvasRenderingContext2D, alpha: number): void;
 }
 
 export class Engine {
@@ -59,7 +61,7 @@ export class Engine {
       }
       if (steps === MAX_STEPS) acc = 0;
       this.swapScene();
-      this.scene?.render(this.ctx);
+      this.scene?.render(this.ctx, acc / STEP_MS);
 
       frames++;
       if (t - fpsStart >= 1000) {

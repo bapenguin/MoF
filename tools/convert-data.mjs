@@ -167,19 +167,47 @@ function convertFile(file) {
   return { scenario: convertScenarioBlock(child(tree, 'scenario')), levels, fairies };
 }
 
+// Softened names for a modern audience. Keyed by the original fairy id; `id`
+// renames the internal id too (used in level spawns and Massacre setups).
+// data/renames.json records old -> new so saved profiles and setups migrate.
+const RENAMES = {
+  blue: { name: "'Lil Rascal" }, // was 'Lil Bastard
+  blue2: { name: "'Lil Brat" }, // was 'Lil Bitch
+  afrofairy: { id: 'queen', name: 'The Fairy Queen' }, // was The Afrocan Queen
+  fatboy: { id: 'jimmy', name: 'Jimmy and his Dog' }, // was Fat Jimmy and his Dog
+  gimp: { id: 'scruffy', name: 'Scruffy the Cat' }, // was The Gimp Cat
+  bikini: { name: 'Bikini Fairy' }, // was Bikini Babe
+  cavebitch: { id: 'uglet' }, // name was already "Uglet"
+};
+const renamedIds = {};
+const renamedNames = {};
+
+function applyRenames(fairies, levels = []) {
+  const out = {};
+  for (const f of Object.values(fairies)) {
+    const r = RENAMES[f.id];
+    if (r?.id) renamedIds[f.id] = r.id;
+    if (r?.name && r.name !== f.name) renamedNames[f.name] = r.name;
+    const id = r?.id ?? f.id;
+    out[id] = { ...f, id, name: r?.name ?? f.name };
+  }
+  for (const l of levels) for (const s of l.spawns) s.type = RENAMES[s.type]?.id ?? s.type;
+  return out;
+}
+
 // Balance and bug-fix patches applied on top of the original data. The legacy
 // .txt files stay as they were; everything that differs from them is here.
 const PATCHES = {
   wild(json) {
-    // The Afrocan Queen had 1000 HP with 40 s on the clock, and this scenario
+    // The Fairy Queen had 1000 HP with 40 s on the clock, and this scenario
     // only gives you the pistol (1 damage a shot): effectively unbeatable.
     // Simulated players at 100 HP: ~17 s frantic, ~29 s steady, ~40 s casual.
-    json.fairies.afrofairy.hp = 100;
+    json.fairies.queen.hp = 100;
   },
   fland(json, converted) {
     // The "stairway" level spawns two "blue" fairies, but fland.txt never
     // defined them, so the original silently skipped them. Use the definition
-    // from the Wilderness ('Lil Bastard: fast, worth 1000).
+    // from the Wilderness ('Lil Rascal: fast, worth 1000).
     json.fairies.blue ??= structuredClone(converted.wild.fairies.blue);
   },
 };
@@ -207,7 +235,7 @@ for (const meta of SCENARIOS) {
     start: scenario.start,
     ammo: scenario.ammo,
     levels: Object.fromEntries(levels.map((l) => [l.id, l])),
-    fairies: Object.fromEntries(fairies.map((f) => [f.id, f])),
+    fairies: applyRenames(fairies, levels),
   };
   PATCHES[meta.id]?.(json, converted);
   check(meta.id, json);
@@ -219,9 +247,11 @@ for (const meta of SCENARIOS) {
 fs.writeFileSync(path.join(outDir, 'scenarios.json'), JSON.stringify(index, null, 2) + '\n');
 
 // Massacre Mode roster (mmode.txt only has a <fairies> block).
-const roster = convertFile('mmode.txt').fairies;
+const roster = applyRenames(convertFile('mmode.txt').fairies);
+fs.writeFileSync(path.join(outDir, 'fairies.json'), JSON.stringify(roster, null, 2) + '\n');
+console.log(`massacre roster: ${Object.keys(roster).length} fairy types`);
+
 fs.writeFileSync(
-  path.join(outDir, 'fairies.json'),
-  JSON.stringify(Object.fromEntries(roster.map((f) => [f.id, f])), null, 2) + '\n',
+  path.join(outDir, 'renames.json'),
+  JSON.stringify({ ids: renamedIds, names: renamedNames }, null, 2) + '\n',
 );
-console.log(`massacre roster: ${roster.length} fairy types`);

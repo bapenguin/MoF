@@ -13,10 +13,15 @@ See [PLAN.md](PLAN.md) for the port plan and status.
 | Switch weapon | `1`–`9`, or click the weapon box in the top bar | Tap the weapon box in the top bar |
 | Pause | `Esc` or `P`, or click the top bar | Tap the top bar |
 | Quit level | `Q` (or Quit in the pause panel) | Quit in the pause panel |
+| Retry after game over | `R` / `Enter`, or **Try again** | **Try again** |
 | Fullscreen | `F` or the ⛶ button | ⛶ button (where the browser allows it) |
 | Cheat | `F1`: 1000 ammo for every weapon (the original's) | – |
 
 The game pauses itself when you switch tabs. On phones, play in landscape.
+
+**Beyond the original:** consecutive hits build a streak (×1.5 at 10, ×2 at 25, ×3 at 50
+points); every level is rated out of 3 stars (clear it · 70% accuracy · harm no innocents);
+cleared levels can be replayed from the level select; Easy / Normal / Hard difficulty.
 
 ## Running locally
 

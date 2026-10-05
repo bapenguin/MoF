@@ -14,16 +14,17 @@ import { audio } from '../engine/audio';
 import { getSheet, loadSheet } from '../engine/sprites';
 import { hasImage, imageUrl } from '../engine/assets';
 import { SCREEN_W, SCREEN_H } from '../engine/screen';
-import { loadScenario, scenarioList } from '../game/data';
+import { levelOrder, loadScenario, scenarioList, type ScenarioDef } from '../game/data';
 import { scenarioTasks } from '../game/preload';
 import { GameMode } from '../game/world';
-import { saveSettings, settings, type Settings } from '../game/settings';
+import { DIFFICULTY, saveSettings, settings, type Difficulty, type Settings } from '../game/settings';
 import {
   accuracy,
   createProfile,
   favouriteWeapon,
   getProfile,
   lastPlayer,
+  levelStars,
   listProfiles,
   setLastPlayer,
   totalKills,
@@ -44,7 +45,7 @@ export const MENU_ASSETS = [
   () => audio.load(MENU_MUSIC),
 ];
 
-type Panel = 'main' | 'login' | 'scenarios' | 'options' | 'stats' | 'hof' | 'quit';
+type Panel = 'main' | 'login' | 'scenarios' | 'levels' | 'options' | 'stats' | 'hof' | 'quit';
 type Mode = 'adventure' | 'massacre';
 
 // The developers' own faces shipped with the game (sprites/<name>.bmp); a
@@ -58,11 +59,24 @@ export class MenuScene implements Scene {
   private player: Profile | null = null;
   private nameDraft = lastPlayer();
   private starting = false;
+  private levelScenario: ScenarioDef | null = null;
+  private selectedLevel = '';
+
+  // After an adventure, come back to that scenario's level list rather than
+  // the main menu.
+  constructor(private returnTo?: { playerName: string; scenarioId: string }) {}
 
   enter(engine: Engine): void {
     this.engine = engine;
     audio.play(MENU_MUSIC, { channel: 'music', loop: true });
-    this.show('main');
+    const back = this.returnTo && getProfile(this.returnTo.playerName);
+    if (back) {
+      this.player = back;
+      this.mode = 'adventure';
+      void this.openLevels(this.returnTo!.scenarioId);
+    } else {
+      this.show('main');
+    }
   }
 
   exit(): void {
@@ -92,6 +106,7 @@ export class MenuScene implements Scene {
       main: () => [this.title(), this.mainPanel()],
       login: () => [this.title(), this.loginPanel()],
       scenarios: () => [this.scenarioPanel()],
+      levels: () => [this.levelsPanel()],
       options: () => [this.title(), this.optionsPanel()],
       stats: () => [this.title(), this.loginPanel(), this.statsPanel()],
       hof: () => [this.hofPanel()],
@@ -122,7 +137,7 @@ export class MenuScene implements Scene {
       menuLink("Massacre dem' Fairies", [0, 176, 305, 22], font, login('massacre')),
       menuLink('Options', [0, 200, 305, 22], font, () => this.show('options')),
       menuLink('MoF HoF', [0, 224, 305, 22], font, () => this.show('hof')),
-      menuLink("Quit dis' Shit!", [0, 248, 305, 22], font, () => this.show('quit')),
+      menuLink("Quit dis' Game!", [0, 248, 305, 22], font, () => this.show('quit')),
     ]);
   }
 
@@ -230,7 +245,7 @@ export class MenuScene implements Scene {
         class: 'link',
         at: [8, top, 104, 79],
         style: { backgroundImage: bg('ui', `scenario-${s.id}`), backgroundSize: '104px 79px', whiteSpace: 'normal' },
-        onClick: () => this.startScenario(s.id),
+        onClick: () => void this.openLevels(s.id),
       }, [title]);
       pic.addEventListener('mouseenter', () => (title.style.color = 'rgb(0,225,54)'));
       pic.addEventListener('mouseleave', () => (title.style.color = 'rgb(0,0,192)'));
@@ -243,14 +258,108 @@ export class MenuScene implements Scene {
     ]);
   }
 
+  // ---- level select (new): pick a starting level and a difficulty ----
+
+  private async openLevels(id: string): Promise<void> {
+    this.levelScenario = await loadScenario(id);
+    const levels = levelOrder(this.levelScenario);
+    // Default to the furthest level you've unlocked.
+    const unlocked = levels.filter((l) => this.levelUnlocked(this.levelScenario!, l.id));
+    this.selectedLevel = unlocked.at(-1)?.id ?? levels[0].id;
+    this.show('levels');
+  }
+
+  // A level is open once the one before it has been cleared (or if you've
+  // already beaten this scenario and moved on, from before stars existed).
+  private levelUnlocked(scenario: ScenarioDef, levelId: string): boolean {
+    const p = this.player;
+    const levels = levelOrder(scenario);
+    const i = levels.findIndex((l) => l.id === levelId);
+    if (i <= 0) return true;
+    if (!p) return false;
+    const index = scenarioList.findIndex((s) => s.id === scenario.id);
+    if (p.scenario > index) return true;
+    return levelStars(p, scenario.id, levels[i - 1].id) > 0;
+  }
+
+  private levelsPanel(): HTMLElement {
+    const scenario = this.levelScenario!;
+    const p = this.player!;
+    const levels = levelOrder(scenario);
+    const rows = levels.map((l, i) => {
+      const open = this.levelUnlocked(scenario, l.id);
+      const stars = levelStars(p, scenario.id, l.id);
+      const selected = l.id === this.selectedLevel;
+      const row = h('div', {
+        class: open ? 'link' : '',
+        at: [24, 52 + i * 29, 552, 26],
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          textAlign: 'left',
+          padding: '0 10px',
+          boxSizing: 'border-box',
+          background: selected ? 'rgba(0,60,0,0.85)' : 'rgba(0,0,0,0.35)',
+          border: selected ? '1px solid rgb(0,225,54)' : '1px solid transparent',
+          color: open ? 'rgb(0,225,54)' : 'rgba(0,192,0,0.45)',
+          font: '16px Arial',
+        },
+      }, [
+        h('span', { text: `${i + 1}.`, style: { width: '30px' } }),
+        h('span', { text: open ? l.name : 'Locked: clear the level before', style: { flex: '1', fontStyle: open ? 'normal' : 'italic' } }),
+        open ? h('span', { text: '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars), style: { color: 'rgb(255,204,0)', letterSpacing: '2px', fontSize: '18px' } }) : null,
+      ]);
+      if (open) {
+        row.addEventListener('click', () => {
+          this.selectedLevel = l.id;
+          this.show('levels');
+        });
+        row.addEventListener('dblclick', () => void this.startScenario(scenario.id));
+      }
+      return row;
+    });
+
+    const difficulty = (Object.keys(DIFFICULTY) as Difficulty[]).map((d, i) => {
+      const radio = h('input', { type: 'radio', name: 'difficulty', checked: settings.difficulty === d });
+      radio.addEventListener('change', () => saveSettings({ difficulty: d }));
+      return h('label', { class: 'check', at: [140 + i * 92, 360, 86, 20] }, [radio, document.createTextNode(DIFFICULTY[d].label)]);
+    });
+
+    return h('div', { class: 'panel', at: [216, 112, 601, 441], style: { backgroundImage: bg('ui', 'scenario-panel') } }, [
+      h('div', { text: scenario.title, at: [0, 0, 585, 49], style: { font: '32px Arial', color: 'rgb(0,192,0)', textAlign: 'center' } }),
+      ...rows,
+      h('div', { text: 'Difficulty:', at: [24, 360, 110, 20], style: { font: '16px Arial', color: 'rgb(0,192,0)' } }),
+      ...difficulty,
+      h('div', {
+        text: 'Stars: clear the level · 70% accuracy · harm no innocents',
+        at: [24, 386, 552, 16],
+        style: { font: '12px Arial', color: 'rgba(200,255,200,0.8)' },
+      }),
+      h('button', { text: 'Back', at: [16, 408, 73, 24], onClick: () => this.show('scenarios') }),
+      h('button', {
+        text: 'Start',
+        at: [480, 404, 100, 30],
+        style: { font: 'bold 15px Tahoma, Arial, sans-serif' },
+        onClick: () => void this.startScenario(scenario.id),
+      }),
+    ]);
+  }
+
   private async startScenario(id: string): Promise<void> {
     if (this.starting || !this.player) return;
     this.starting = true;
     const scenario = await loadScenario(id);
     const engine = this.engine;
+    const options = { startLevel: this.selectedLevel, difficulty: settings.difficulty };
     engine.setScene(
       new LoadingScene(scenario.title, scenarioTasks(scenario), () =>
-        new PlayScene(scenario, GameMode.Adventure, this.player, () => engine.setScene(new MenuScene())),
+        new PlayScene(
+          scenario,
+          GameMode.Adventure,
+          this.player,
+          () => engine.setScene(new MenuScene({ playerName: this.player!.name, scenarioId: scenario.id })),
+          options,
+        ),
       ),
     );
   }
@@ -259,20 +368,22 @@ export class MenuScene implements Scene {
 
   private optionsPanel(): HTMLElement {
     const draft = { ...settings };
-    const box = (key: keyof Settings, text: string, top: number) => {
+    type Toggle = { [K in keyof Settings]: Settings[K] extends boolean ? K : never }[keyof Settings];
+    const box = (key: Toggle, text: string, top: number) => {
       const input = h('input', { type: 'checkbox', checked: draft[key] });
       input.addEventListener('change', () => (draft[key] = input.checked));
       return h('label', { class: 'check', at: [0, top, 145, 17] }, [input, document.createTextNode(text)]);
     };
-    return h('div', { class: 'panel', at: [440, 464, 145, 169], style: { backgroundImage: bg('ui', 'options-panel') } }, [
+    return h('div', { class: 'panel', at: [440, 464, 145, 186], style: { backgroundImage: bg('ui', 'options-panel') } }, [
       h('div', { text: 'Options', at: [24, 24, 89, 25], style: { font: '19px Arial', textAlign: 'center' } }),
       box('sound', 'Sound', 64),
       box('ambient', 'Ambient Sounds', 81),
       box('music', 'Music', 98),
       box('weather', 'Weather Effects', 115),
+      box('shake', 'Screen Shake', 132),
       h('button', {
         text: 'Ok',
-        at: [32, 138, 81, 25],
+        at: [32, 155, 81, 25],
         onClick: () => {
           saveSettings(draft);
           // The menu music follows the new settings straight away.

@@ -11,7 +11,7 @@ import { SCREEN_W, SCREEN_H } from '../engine/screen';
 import { FairyClass, spriteRows, type FairyDef, type LevelDef, type ScenarioDef } from './data';
 import { GIFTS, PISTOL, WEAPONS, WeaponType, isBlast, type WeaponDef } from './weapons';
 import { Weather } from './weather';
-import { settings } from './settings';
+import { DIFFICULTY, settings, type Difficulty } from './settings';
 
 export const SCREENTOP = 83; // height of the top HUD bar
 const SPRITE_SIZE = 75; // fmod.bas SpriteSize, used for spawn placement
@@ -50,11 +50,31 @@ interface Fairy {
   flip: number;
   sheet: SpriteSheet; // what's drawn now: normal, act or death sprite
   ltime: number;
+  maxHp: number; // hp after the difficulty adjustment
+  lastHit: number; // when it was last hurt, for its little health bar
+  px: number; // position at the previous update, for smooth drawing between updates
+  py: number;
+}
+
+// A hit marker on the cursor when a shot connects (new).
+export interface HitMark {
+  x: number;
+  y: number;
+  at: number;
+}
+
+// The boss health bar: the toughest target fairy still standing (50+ HP).
+export interface BossInfo {
+  name: string;
+  hp: number;
+  maxHp: number;
 }
 
 interface Splat {
   x: number;
   y: number;
+  px: number;
+  py: number;
   vx: number;
   vy: number;
   sheet: SpriteSheet;
@@ -73,6 +93,7 @@ interface ScorePopup {
 interface Gift {
   x: number;
   y: number;
+  py: number;
   type: number;
   sheet: SpriteSheet;
 }
@@ -103,6 +124,7 @@ interface Hole {
 interface Piano {
   x: number;
   y: number;
+  py: number;
   vy: number; // px per update
   sheet: SpriteSheet;
   frame: number;
@@ -110,6 +132,19 @@ interface Piano {
 }
 
 const SCORE_SPRITES: Record<number, string> = { 25: '25', 50: '50', 100: '100', 200: '200', 500: '500', 1000: '1000' };
+
+// Streak multipliers (new): consecutive hits raise the points each kill is worth.
+export const STREAK_TIERS: Array<[streak: number, multiplier: number]> = [
+  [50, 3],
+  [25, 2],
+  [10, 1.5],
+  [0, 1],
+];
+
+// The parts of a session restored when retrying a level.
+type Snapshot = Pick<Session, 'score' | 'displayScore' | 'shots' | 'hits' | 'damage' | 'rank' | 'fairyKills' | 'weapon'> & {
+  ammo: number[];
+};
 
 // State that carries across levels for one play-through (pstats, ammo, weapon, streak).
 export class Session {
@@ -126,12 +161,31 @@ export class Session {
   rank = 0;
   streak = 0;
   longStreak = 0;
+  fairyKills = 0; // target fairies killed (the HUD "Kills" box; the original showed hits)
 
   constructor(
     readonly scenario: ScenarioDef,
     readonly mode: GameMode,
+    readonly difficulty: Difficulty = 'normal',
   ) {
     for (const [num, amount] of Object.entries(scenario.ammo)) this.ammo[Number(num)] = amount;
+  }
+
+  get multiplier(): number {
+    return STREAK_TIERS.find(([min]) => this.streak >= min)![1];
+  }
+
+  snapshot(): Snapshot {
+    const { score, displayScore, shots, hits, damage, rank, fairyKills, weapon } = this;
+    return { score, displayScore, shots, hits, damage, rank, fairyKills, weapon, ammo: [...this.ammo] };
+  }
+
+  restore(snap: Snapshot): void {
+    const { ammo, ...rest } = snap;
+    Object.assign(this, rest);
+    ammo.forEach((n, i) => (this.ammo[i] = n));
+    this.streak = 0;
+    this.lastShot.fill(-Infinity);
   }
 
   get weaponDef(): WeaponDef {
@@ -173,6 +227,13 @@ export class World {
   shots = 0;
   hits = 0;
   kills = 0;
+  // For the level's star rating (new): gun accuracy and innocents harmed.
+  gunShots = 0; // pistol / shotgun / machine gun / howitzer shots
+  gunHits = 0; // ...of which hit at least one fairy
+  innocentsHit = 0;
+  lastHitMark: HitMark | null = null;
+
+  private shakes: Array<{ magnitude: number; start: number; ms: number }> = [];
 
   private fairies: Fairy[] = [];
   private alive = 0; // flive: class-0 fairies still standing
@@ -185,7 +246,7 @@ export class World {
   private holes: Hole[] = [];
   private ion: { x: number; frame: number } | null = null;
   private piano: Piano | null = null;
-  private bus: { x: number; y: number; frame: number } | null = null;
+  private bus: { x: number; px: number; y: number; frame: number } | null = null;
   private frameClock = 0;
   private bg: SpriteSheet;
   private fg: SpriteSheet | null;
@@ -206,7 +267,7 @@ export class World {
     const splat = getSheet('splat');
     const gore = getSheet('gore');
     for (let i = 0; i < MAX_SPLATS; i++) {
-      this.splats.push({ x: 0, y: 0, vx: 0, vy: 0, sheet: i % 4 === 0 ? splat : gore, frame: 0, show: false });
+      this.splats.push({ x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, sheet: i % 4 === 0 ? splat : gore, frame: 0, show: false });
     }
   }
 
@@ -228,20 +289,27 @@ export class World {
   private spawnFairy(def: FairyDef): Fairy {
     const sheet = getSheet(def.sprite);
     const size = sheet.frameH;
+    // Difficulty only touches the targets; innocents behave the same on every setting.
+    const diff = DIFFICULTY[def.class === FairyClass.Fairy ? this.session.difficulty : 'normal'];
+    const maxHp = Math.max(1, Math.ceil(def.hp * diff.hp));
     const f: Fairy = {
       def,
       state: State.Alive,
-      hp: def.hp,
+      hp: maxHp,
+      maxHp,
       x: (SCREEN_W - SPRITE_SIZE) * Math.random() + 1,
       y: (SCREEN_H - SPRITE_SIZE - SCREENTOP) * Math.random() + 1 + SCREENTOP,
+      px: 0,
+      py: 0,
       mx: 0,
       my: 0,
-      speed: def.speed,
+      speed: def.speed * diff.speed,
       size,
       frame: Math.floor(Math.random() * def.frames),
       flip: 0,
       sheet,
       ltime: this.now,
+      lastHit: -Infinity,
     };
     switch (def.class) {
       case FairyClass.Fairy:
@@ -261,7 +329,36 @@ export class World {
         f.mx = f.speed;
         break;
     }
+    f.px = f.x;
+    f.py = f.y;
     return f;
+  }
+
+  // The boss health bar shows the toughest target fairy still standing.
+  get boss(): BossInfo | null {
+    let top: Fairy | null = null;
+    for (const f of this.fairies) {
+      if (f.def.class !== FairyClass.Fairy || f.maxHp < 50 || f.state === State.Dead || f.state === State.Dying) continue;
+      if (!top || f.maxHp > top.maxHp) top = f;
+    }
+    return top ? { name: top.def.name, hp: Math.max(0, top.hp), maxHp: top.maxHp } : null;
+  }
+
+  // Screen shake (new), for the big weapons. Can be turned off in Options.
+  // Each shake fades out over its duration; the strongest one active wins.
+  private shake(magnitude: number, ms: number): void {
+    if (!settings.shake) return;
+    this.shakes.push({ magnitude, start: this.now, ms });
+  }
+
+  private shakeOffset(now: number): [number, number] {
+    let mag = 0;
+    for (const s of this.shakes) {
+      const left = 1 - (now - s.start) / s.ms;
+      if (left > 0) mag = Math.max(mag, s.magnitude * left);
+    }
+    if (mag < 0.5) return [0, 0];
+    return [(Math.random() * 2 - 1) * mag, (Math.random() * 2 - 1) * mag];
   }
 
   private turn(f: Fairy): void {
@@ -274,6 +371,20 @@ export class World {
     this.frameClock += dt * 1000;
     const advance = this.frameClock >= FRAME_MS;
     if (advance) this.frameClock -= FRAME_MS;
+
+    // Where everything was, so frames drawn between updates can blend smoothly
+    // (high refresh rate screens draw 2+ frames per 60 Hz update).
+    for (const f of this.fairies) {
+      f.px = f.x;
+      f.py = f.y;
+    }
+    for (const s of this.splats) {
+      s.px = s.x;
+      s.py = s.y;
+    }
+    for (const g of this.gifts) g.py = g.y;
+    if (this.bus) this.bus.px = this.bus.x;
+    if (this.piano) this.piano.py = this.piano.y;
 
     if (this.mines.length) {
       for (const f of this.fairies) if (f.state !== State.Dead) this.checkMines(f);
@@ -341,6 +452,7 @@ export class World {
     }
 
     this.updateSpecials(dt, advance);
+    this.shakes = this.shakes.filter((s) => now - s.start < s.ms);
     this.weather?.update(dt);
     this.updateSplats(dt);
     for (const g of this.gifts) g.y += dt * GIFT_SPEED;
@@ -359,12 +471,14 @@ export class World {
       if (f.def.class === FairyClass.Fairy) this.alive--;
     } else {
       // Massacre mode: back from the dead, dropping in from somewhere random.
-      f.hp = f.def.hp;
+      f.hp = f.maxHp;
       f.state = State.Alive;
       f.sheet = getSheet(f.def.sprite);
       f.my = Math.random() * 1000 + 500;
       f.x = Math.floor(Math.random() * (SCREEN_W - f.sheet.frameW));
       f.y = Math.floor(Math.random() * (SCREEN_H - f.size));
+      f.px = f.x; // a teleport, not a slide across the screen
+      f.py = f.y;
     }
   }
 
@@ -376,9 +490,7 @@ export class World {
     if (this.now - s.lastShot[w.num] < w.delay) return false;
     // Only one bus, ion beam or piano at a time. The original still spent the
     // ammo when you fired another; here the trigger just doesn't respond.
-    if ((w.type === WeaponType.Bus && this.bus) || (w.type === WeaponType.Ion && this.ion) || (w.type === WeaponType.Piano && this.piano)) {
-      return false;
-    }
+    if (this.specialBusy(w.type)) return false;
 
     s.weaponShots[w.num]++;
     s.shots++;
@@ -422,6 +534,14 @@ export class World {
       }
     }
 
+    this.gunShots++;
+    if (hitCount > 0) {
+      this.gunHits++;
+      this.lastHitMark = { x, y, at: this.now };
+    }
+    if (w.type === WeaponType.Blaster) this.shake(3, 120);
+    else if (w.type === WeaponType.BlasterRapid) this.shake(2, 80);
+
     // The original only counted streaks for blast weapons (and reset them after
     // every pistol shot); here any shot that hits extends the streak.
     s.streak = hitCount > 0 ? s.streak + hitCount : 0;
@@ -439,15 +559,20 @@ export class World {
     s.damage += power;
     this.hits++;
     f.hp -= power;
+    f.lastHit = this.now;
+    if (f.def.class !== FairyClass.Fairy && f.state !== State.Dying) this.innocentsHit++;
     if (f.hp > 0) return;
 
     f.state = State.Dying;
     f.my += G;
     f.sheet = getSheet(f.def.deathSprite);
     f.frame = 0;
-    if (f.def.class === FairyClass.Fairy) this.kills++;
-    else audio.play('dumbass', { x: panX });
-    s.score += f.def.worth;
+    if (f.def.class === FairyClass.Fairy) {
+      this.kills++;
+      s.fairyKills++;
+    } else audio.play('dumbass', { x: panX });
+    // Streak multiplier boosts points earned; penalties for innocents stay as they are.
+    s.score += f.def.worth > 0 ? Math.round(f.def.worth * s.multiplier) : f.def.worth;
     const sounds = f.def.dieSounds;
     if (sounds.length) audio.play(sounds[Math.floor(Math.random() * sounds.length)], { x: panX });
     s.kills[f.def.name] = (s.kills[f.def.name] ?? 0) + 1;
@@ -482,6 +607,7 @@ export class World {
 
   private blowUpMine(m: Mine): void {
     audio.play('boom', { x: m.x });
+    this.shake(8, 300);
     m.armed = false;
     m.frame = 0;
     m.sheet = getSheet('fmined1');
@@ -542,6 +668,7 @@ export class World {
   private fireIon(x: number): boolean {
     this.ion = { x: x - getSheet('ion').frameW / 2, frame: 0 };
     audio.play('ionzap', { x });
+    this.shake(5, 550);
     return true;
   }
 
@@ -562,7 +689,8 @@ export class World {
 
   private firePiano(x: number): boolean {
     const sheet = getSheet('piano');
-    this.piano = { x: x - sheet.frameW / 2, y: SCREENTOP - sheet.frameH, vy: 50, sheet, frame: 0, falling: true };
+    const y = SCREENTOP - sheet.frameH;
+    this.piano = { x: x - sheet.frameW / 2, y, py: y, vy: 50, sheet, frame: 0, falling: true };
     audio.play('pfall', { x });
     return true;
   }
@@ -581,7 +709,8 @@ export class World {
   private fireBus(): boolean {
     audio.play('bus');
     const sheet = getSheet('busanim');
-    this.bus = { x: -sheet.frameW, y: SCREEN_H - sheet.frameH, frame: 0 };
+    this.bus = { x: -sheet.frameW, px: -sheet.frameW, y: SCREEN_H - sheet.frameH, frame: 0 };
+    this.shake(2, 1200); // engine rumble as it pulls in
     return true;
   }
 
@@ -591,6 +720,7 @@ export class World {
       f.mx += 450;
       f.my -= 450;
       audio.play('splat', { x: f.x });
+      this.shake(4, 120);
       this.hurt(f, 50, f.x);
     }
   }
@@ -621,7 +751,9 @@ export class World {
         p.frame = 0;
         p.y = SCREEN_H - p.sheet.frameH;
         p.falling = false;
+        p.py = p.y;
         this.addSplats(p.x + p.sheet.frameW / 2, SCREEN_H - 10, 35);
+        this.shake(10, 350);
       }
     } else if (p && ++p.frame >= 4) {
       audio.play('pianobang', { x: p.x });
@@ -632,12 +764,29 @@ export class World {
     if (advance) for (const h of this.holes) h.frame = (h.frame + 1) % 8;
   }
 
-  private renderSpecials(ctx: CanvasRenderingContext2D): void {
-    if (this.bus) getSheet('busanim').draw(ctx, this.bus.x, this.bus.y, this.bus.frame);
+  private renderSpecials(ctx: CanvasRenderingContext2D, lerp: (prev: number, cur: number) => number): void {
+    if (this.bus) getSheet('busanim').draw(ctx, lerp(this.bus.px, this.bus.x), this.bus.y, this.bus.frame);
     for (const m of this.mines) m.sheet.draw(ctx, m.x, m.y, m.frame);
     if (this.ion) getSheet('ion').draw(ctx, this.ion.x, SCREENTOP, this.ionFrame(this.ion.frame));
-    if (this.piano) this.piano.sheet.draw(ctx, this.piano.x, this.piano.y, this.piano.frame);
+    if (this.piano) this.piano.sheet.draw(ctx, this.piano.x, lerp(this.piano.py, this.piano.y), this.piano.frame);
     for (const h of this.holes) h.sheet.draw(ctx, h.x, h.y, Math.floor(h.frame / 2));
+  }
+
+  // Small health bars (new) over fairies that take several hits, shown briefly
+  // after each hit. The boss gets the big bar in the HUD instead.
+  private renderHealthBars(ctx: CanvasRenderingContext2D, now: number, lerp: (prev: number, cur: number) => number): void {
+    for (const f of this.fairies) {
+      if (f.state !== State.Alive && f.state !== State.Acting) continue;
+      if (f.maxHp <= 1 || f.maxHp >= 50 || f.hp >= f.maxHp || now - f.lastHit > 1500) continue;
+      const w = Math.min(60, f.sheet.frameW * 0.6);
+      const x = lerp(f.px, f.x) + (f.sheet.frameW - w) / 2;
+      const y = Math.max(SCREENTOP + 2, lerp(f.py, f.y) - 8);
+      const left = Math.max(0, f.hp / f.maxHp);
+      ctx.fillStyle = 'rgba(0,0,0,0.65)';
+      ctx.fillRect(x - 1, y - 1, w + 2, 6);
+      ctx.fillStyle = left > 0.5 ? '#3d3' : left > 0.25 ? '#ec3' : '#e33';
+      ctx.fillRect(x, y, w * left, 4);
+    }
   }
 
   // Innocents face left on row 1. Single-row sheets (e.g. act sprites) stay on row 0.
@@ -650,8 +799,8 @@ export class World {
       const s = this.splats[this.nextSplat];
       this.nextSplat = (this.nextSplat + 1) % MAX_SPLATS;
       s.show = true;
-      s.x = x;
-      s.y = y;
+      s.x = s.px = x;
+      s.y = s.py = y;
       s.vx = Math.random() * 10 - 5; // px per update
       s.vy = -(Math.random() * 20 + 5);
       s.frame = Math.floor(Math.random() * s.sheet.framesX);
@@ -690,7 +839,7 @@ export class World {
   private spawnGift(type: number, x: number, y: number): void {
     const gift = GIFTS[type];
     if (!gift || this.gifts.length >= MAX_GIFTS) return;
-    this.gifts.push({ x, y, type, sheet: getSheet(gift.sprite) });
+    this.gifts.push({ x, y, py: y, type, sheet: getSheet(gift.sprite) });
   }
 
   // Shooting a falling crate collects it. (The original only checked the
@@ -707,17 +856,36 @@ export class World {
     });
   }
 
-  // DrawFairies, minus the HUD text (drawn by the play scene).
-  render(ctx: CanvasRenderingContext2D, now: number): void {
-    this.bg.draw(ctx, 0, 0);
-    for (const f of this.fairies) {
-      if (f.state !== State.Dead) f.sheet.draw(ctx, f.x, f.y, f.frame, this.row(f));
+  // DrawFairies, minus the HUD text (drawn by the play scene). `alpha` (0-1)
+  // is how far we are between the last update and the next, so moving things
+  // are drawn smoothly on displays faster than the 60 Hz simulation.
+  render(ctx: CanvasRenderingContext2D, now: number, alpha = 1): void {
+    const lerp = (prev: number, cur: number) => prev + (cur - prev) * alpha;
+    const [sx, sy] = this.shakeOffset(now);
+    const shaking = sx !== 0 || sy !== 0;
+
+    // The playfield shakes; the HUD bar doesn't.
+    ctx.save();
+    if (shaking) {
+      ctx.translate(sx, sy);
+      // Overscan so a shake never reveals the edge of the background.
+      ctx.drawImage(this.bg.image, -12, -12, SCREEN_W + 24, SCREEN_H + 24);
+    } else {
+      this.bg.draw(ctx, 0, 0);
     }
-    this.renderSpecials(ctx);
+    for (const f of this.fairies) {
+      if (f.state !== State.Dead) f.sheet.draw(ctx, lerp(f.px, f.x), lerp(f.py, f.y), f.frame, this.row(f));
+    }
+    this.renderHealthBars(ctx, now, lerp);
+    this.renderSpecials(ctx, lerp);
     this.weather?.render(ctx);
     this.fg?.draw(ctx, 0, SCREEN_H - this.fg.frameH);
+    ctx.restore();
+
     this.topbar.draw(ctx, 0, 0);
 
+    ctx.save();
+    if (shaking) ctx.translate(sx, sy);
     for (const p of this.scores) {
       if (!p?.show) continue;
       const age = now - p.spawn;
@@ -725,8 +893,14 @@ export class World {
       if (frame > 7) p.show = false;
       else p.sheet.draw(ctx, p.x, p.y, frame);
     }
-    for (const g of this.gifts) g.sheet.draw(ctx, g.x, g.y);
-    for (const s of this.splats) if (s.show) s.sheet.draw(ctx, s.x, s.y, s.frame);
+    for (const g of this.gifts) g.sheet.draw(ctx, g.x, lerp(g.py, g.y));
+    for (const s of this.splats) if (s.show) s.sheet.draw(ctx, lerp(s.px, s.x), lerp(s.py, s.y), s.frame);
+    ctx.restore();
+  }
+
+  // For the HUD's cooldown indicator: a bus, ion beam or piano still in play.
+  specialBusy(type: WeaponType): boolean {
+    return (type === WeaponType.Bus && !!this.bus) || (type === WeaponType.Ion && !!this.ion) || (type === WeaponType.Piano && !!this.piano);
   }
 }
 

@@ -5,7 +5,7 @@
 // Like the original card, the story leads into the next scenario's intro.
 
 import { getSheet } from '../engine/sprites';
-import { FairyClass, scenarioList, type ScenarioDef } from './data';
+import { FairyClass, levelOrder, scenarioList, type ScenarioDef } from './data';
 
 const W = 400;
 const H = 400;
@@ -30,12 +30,6 @@ export function drawVictoryCard(ctx: CanvasRenderingContext2D, scenario: Scenari
   ctx.drawImage(card, x, y);
 }
 
-function finalLevel(scenario: ScenarioDef) {
-  let level = scenario.levels[scenario.start];
-  for (let i = 0; i < 50 && level.next !== 'end' && scenario.levels[level.next]; i++) level = scenario.levels[level.next];
-  return level;
-}
-
 function buildCard(scenario: ScenarioDef): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = W;
@@ -43,7 +37,7 @@ function buildCard(scenario: ScenarioDef): HTMLCanvasElement {
   const c = canvas.getContext('2d')!;
   const index = scenarioList.findIndex((s) => s.id === scenario.id);
   const next = scenarioList[index + 1];
-  const level = finalLevel(scenario);
+  const level = levelOrder(scenario).at(-1)!;
 
   // Wood, darkened to the original card's tone, with a bevelled edge.
   c.drawImage(getSheet('wood', 'ui').image, 120, 200, W, H, 0, 0, W, H);

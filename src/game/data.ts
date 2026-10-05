@@ -66,6 +66,17 @@ export function loadScenario(id: string): Promise<ScenarioDef> {
   return load();
 }
 
+// A scenario's levels in play order, following each level's `next`.
+export function levelOrder(scenario: ScenarioDef): LevelDef[] {
+  const out: LevelDef[] = [];
+  let level: LevelDef | undefined = scenario.levels[scenario.start];
+  while (level && !out.includes(level)) {
+    out.push(level);
+    level = level.next === 'end' ? undefined : scenario.levels[level.next];
+  }
+  return out;
+}
+
 // Innocent walkers/flyers have a second sprite row for facing left (makeinnocent).
 export function spriteRows(f: FairyDef): number {
   return f.class === FairyClass.Walker || f.class === FairyClass.Flyer ? 2 : 1;

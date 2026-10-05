@@ -73,7 +73,7 @@
           "count": 5
         },
         {
-          "type": "fatboy",
+          "type": "jimmy",
           "count": 1
         }
       ],
@@ -117,7 +117,7 @@
           "count": 5
         },
         {
-          "type": "cavebitch",
+          "type": "uglet",
           "count": 20
         }
       ],
@@ -164,7 +164,7 @@
           "count": 5
         },
         {
-          "type": "gimp",
+          "type": "scruffy",
           "count": 1
         }
       ],
@@ -198,7 +198,7 @@
       "next": "end",
       "spawns": [
         {
-          "type": "afrofairy",
+          "type": "queen",
           "count": 1
         }
       ],
@@ -206,9 +206,9 @@
     }
   },
   "fairies": {
-    "gimp": {
-      "id": "gimp",
-      "name": "The Gimp Cat",
+    "scruffy": {
+      "id": "scruffy",
+      "name": "Scruffy the Cat",
       "class": 1,
       "sprite": "gimpcat",
       "deathSprite": "catdie1",
@@ -240,9 +240,9 @@
         "fdie6"
       ]
     },
-    "fatboy": {
-      "id": "fatboy",
-      "name": "Fat Jimmy and his Dog",
+    "jimmy": {
+      "id": "jimmy",
+      "name": "Jimmy and his Dog",
       "class": 1,
       "sprite": "boydog",
       "deathSprite": "boydogd1",
@@ -298,7 +298,7 @@
     },
     "blue": {
       "id": "blue",
-      "name": "'Lil Bastard",
+      "name": "'Lil Rascal",
       "class": 0,
       "sprite": "fairy2",
       "deathSprite": "fairy2d1",
@@ -367,8 +367,8 @@
         "fdie4"
       ]
     },
-    "cavebitch": {
-      "id": "cavebitch",
+    "uglet": {
+      "id": "uglet",
       "name": "Uglet",
       "class": 0,
       "sprite": "fairy7",
@@ -384,9 +384,9 @@
         "fdie7"
       ]
     },
-    "afrofairy": {
-      "id": "afrofairy",
-      "name": "The Afrocan Queen",
+    "queen": {
+      "id": "queen",
+      "name": "The Fairy Queen",
       "class": 0,
       "sprite": "fboss1",
       "deathSprite": "fboss1",

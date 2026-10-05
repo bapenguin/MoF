@@ -9,6 +9,7 @@ import { getManifest, imageUrl } from '../engine/assets';
 import { getSheet } from '../engine/sprites';
 import type { FairyDef, LevelDef, ScenarioDef } from '../game/data';
 import roster from '../../data/fairies.json';
+import renames from '../../data/renames.json';
 import { scenarioTasks } from '../game/preload';
 import { GameMode } from '../game/world';
 import { WEAPONS } from '../game/weapons';
@@ -56,7 +57,11 @@ function blankConfig(): Config {
 
 function loadConfig(): Config {
   try {
-    return { ...blankConfig(), ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
+    const c: Config = { ...blankConfig(), ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
+    // Setups saved before fairy ids were renamed.
+    const ids = renames.ids as Record<string, string>;
+    c.fairies = c.fairies.map((f) => ({ ...f, id: ids[f.id] ?? f.id })).filter((f) => FAIRIES[f.id]);
+    return c;
   } catch {
     return blankConfig();
   }
