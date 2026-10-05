@@ -3,7 +3,20 @@
 Goal: make Massacre of the Fairies play properly on phones and tablets (touch-first UI, crisp
 high-res art) without forking the game.
 
-**Status (2026-10-05):** M1 done, M2 mostly done (baked-text art still to redraw).
+**Status (2026-10-05):** M1 and M3 done (M3 not yet tried on a real phone), M2 mostly done
+(baked-text art still to redraw). Owner confirmed M1 looks sharper on their phone. Next: M4 menus.
+
+- **M3 play layout:** `screen.ts` computes a touch layout on coarse-pointer devices (`?touch=1` /
+  `?touch=0` override): the game sits inside the safe area with rails of at least 76 CSS px either
+  side (on wide phones it keeps its full height; on 4:3 tablets it shrinks a little).
+  `src/ui/rails.ts`: left rail = pause, Time/Score/Kills, fullscreen; right rail = all nine
+  weapons with icons and ammo (two columns when the rail is ≥128 px), one tap to switch, reload
+  sweep on the selected one. Touch shots with pistol/MG snap to the nearest fairy or crate pixel
+  within 16 CSS px (`World.shoot` `slack`; mouse shots stay exact); this also makes the 70%
+  accuracy star easier on touch. Kills buzz on Android (`settings.vibrate`, toggle in the pause
+  panel, which gets bigger buttons on touch). Tested in the preview at 844x390 and 1024x768:
+  layout, weapon taps, pause/resume, aim slack (12/12 near-misses hit with touch, 0/12 with mouse,
+  0/8 far shots).
 
 - **M2 art:** tested Lanczos vs Real-ESRGAN `x4plus` vs `x4plus-anime` and **chose ESRGAN x4plus**
   for sprites, foregrounds and backgrounds. `npm run upscale` (`tools/upscale-assets.mjs`) builds

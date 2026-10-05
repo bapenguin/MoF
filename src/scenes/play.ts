@@ -5,19 +5,26 @@ import type { Engine, Scene } from '../engine/engine';
 import { audio } from '../engine/audio';
 import { getSheet } from '../engine/sprites';
 import { drawText, str } from '../engine/text';
-import { SCREEN_W, SCREEN_H } from '../engine/screen';
+import { SCREEN_W, SCREEN_H, displayScale, layout } from '../engine/screen';
 import type { ScenarioDef } from '../game/data';
 import { GameMode, SCREENTOP, Session, World } from '../game/world';
 import { WEAPONS, isRapid } from '../game/weapons';
 import { recordStars, saveProfile, type Profile } from '../game/profiles';
-import { DIFFICULTY, type Difficulty } from '../game/settings';
+import { DIFFICULTY, saveSettings, settings, type Difficulty } from '../game/settings';
 import { h } from '../ui/dom';
+import { Rails } from '../ui/rails';
 import { drawVictoryCard } from '../game/victory';
 
 // The HUD bar's weapon box: tapping it switches weapon (keys 1-9 do too).
 const WEAPON_BOX = { left: 360, right: 460 };
 const WEAPON_ICON = { x: 380, y: 30, size: 50 };
 const COOLDOWN_MIN_MS = 300; // weapons slower than this get the cooldown sweep
+
+// Touch aim forgiveness: a pixel-accurate shot this close to a fairy (in CSS px,
+// ~2.5 mm on a phone) still hits. Capped in logical px for small, scaled-down windows.
+const TOUCH_SLACK_CSS = 16;
+const TOUCH_SLACK_MAX = 40;
+const canVibrate = typeof navigator.vibrate === 'function';
 
 // Star rating (new): one for clearing the level, one for accuracy, one for
 // leaving the innocents alone.
@@ -68,6 +75,8 @@ export class PlayScene implements Scene {
   private rating: Rating | null = null;
   private lastTier = 1;
   private tierShownAt = -Infinity;
+  private rails: Rails | null = null;
+  private lastBuzz = -Infinity;
 
   constructor(
     private scenario: ScenarioDef,
@@ -85,12 +94,22 @@ export class PlayScene implements Scene {
     this.engine = engine;
     if (import.meta.env.DEV) (window as unknown as { __play: PlayScene }).__play = this;
     document.addEventListener('visibilitychange', this.onVisibility);
+    if (layout.touch) {
+      this.rails = new Rails({
+        weapon: (num) => {
+          if (this.phase === 'play' && !this.paused) this.session.switchWeapon(num);
+        },
+        pause: () => (this.paused ? this.resume() : this.pause()),
+      });
+    }
     const start = this.options.startLevel && this.scenario.levels[this.options.startLevel] ? this.options.startLevel : this.scenario.start;
     this.startLevel(start);
     this.session.switchWeapon(1);
   }
 
   exit(): void {
+    this.rails?.destroy();
+    this.rails = null;
     document.removeEventListener('visibilitychange', this.onVisibility);
     if (this.paused) audio.release();
     audio.stopAll();
@@ -105,22 +124,46 @@ export class PlayScene implements Scene {
     this.engine.input.down = false;
     audio.hold();
     const hint = (text: string) => h('div', { text, style: { font: '14px Arial', color: '#cfc', marginTop: '6px' } });
+    // On the touch layout the controls are big, since the panel is scaled down with the game.
+    const touch = layout.touch;
+    const panelH = touch ? 300 : 230;
+    const btn = (text: string, x: number, onClick: () => void) =>
+      h('button', {
+        text,
+        at: touch ? [x, 150, 150, 56] : [x === 20 ? 40 : 186, 172, 120, 30],
+        style: touch ? { font: 'bold 22px Tahoma, Arial, sans-serif' } : {},
+        onClick,
+      });
+    const children: Array<HTMLElement | false> = [
+      h('div', { text: 'PAUSED', style: { font: 'bold 40px Arial', color: '#0f0', marginBottom: '6px' } }),
+      ...(touch
+        ? [hint('Tap a weapon on the right to switch')]
+        : [hint('Esc or P to carry on · Q to quit'), hint('Tap the weapon box to switch weapons'), hint('Tap the top bar to pause')]),
+      btn('Resume', 20, () => this.resume()),
+      btn('Quit game', 180, () => this.quitFromPause()),
+      touch && canVibrate && this.vibrateToggle(),
+    ];
     this.engine.overlay.replaceChildren(
       h('div', { at: [0, 0, SCREEN_W, SCREEN_H], style: { background: 'rgba(0,0,0,0.55)' } }, [
         h('div', {
           class: 'panel',
-          at: [337, 250, 350, 230],
+          at: [337, (SCREEN_H - panelH) / 2, 350, panelH],
           style: { background: 'rgb(0,64,0)', border: '2px outset #4a4', boxSizing: 'border-box', textAlign: 'center', padding: '16px' },
-        }, [
-          h('div', { text: 'PAUSED', style: { font: 'bold 40px Arial', color: '#0f0', marginBottom: '6px' } }),
-          hint('Esc or P to carry on · Q to quit'),
-          hint('Tap the weapon box to switch weapons'),
-          hint('Tap the top bar to pause'),
-          h('button', { text: 'Resume', at: [40, 172, 120, 30], onClick: () => this.resume() }),
-          h('button', { text: 'Quit game', at: [186, 172, 120, 30], onClick: () => this.quitFromPause() }),
-        ]),
+        }, children),
       ]),
     );
+  }
+
+  // Pause panel switch for kill vibrations (touch layout, where the phone supports it).
+  private vibrateToggle(): HTMLElement {
+    const box = h('input', { type: 'checkbox' });
+    box.checked = settings.vibrate;
+    box.addEventListener('change', () => saveSettings({ vibrate: box.checked }));
+    Object.assign(box.style, { width: '26px', height: '26px', margin: '0 10px 0 0' });
+    return h('label', {
+      at: [0, 232, 350, 40],
+      style: { display: 'flex', alignItems: 'center', justifyContent: 'center', font: 'bold 20px Arial', color: '#cfc', cursor: 'pointer' },
+    }, [box, document.createTextNode('Vibrate on kills')]);
   }
 
   private resume(): void {
@@ -222,10 +265,15 @@ export class PlayScene implements Scene {
     // One shot per update, like the original: the latest click, or the cursor
     // position while the trigger is held on a rapid-fire weapon.
     let shot = clicks.filter((c) => c.y >= SCREENTOP).at(-1);
-    if (input.down && input.y >= SCREENTOP && isRapid(this.session.weaponDef)) shot = { x: input.x, y: input.y };
-    if (shot) this.world.shoot(shot.x, shot.y);
+    if (input.down && input.y >= SCREENTOP && isRapid(this.session.weaponDef)) shot = { x: input.x, y: input.y, touch: input.touch };
+    const kills = this.session.fairyKills;
+    const innocents = this.world.innocentsHit;
+    if (shot) this.world.shoot(shot.x, shot.y, shot.touch ? Math.min(TOUCH_SLACK_MAX, TOUCH_SLACK_CSS / displayScale()) : 0);
 
     this.world.update(dt, now);
+    // Mines, the bus and the rest kill during update, so compare across both.
+    if (this.world.innocentsHit > innocents) this.buzz([30, 40, 30]);
+    else if (this.session.fairyKills > kills) this.buzz(12);
 
     const tier = this.session.multiplier;
     if (tier > this.lastTier) this.tierShownAt = now;
@@ -242,6 +290,14 @@ export class PlayScene implements Scene {
       audio.play('win');
       this.setPhase('summary');
     }
+  }
+
+  // A short vibration (Android; iPhones don't support it), at most every 80 ms so a
+  // mine chain doesn't turn into one long buzz.
+  private buzz(pattern: number | number[]): void {
+    if (!this.rails || !canVibrate || !settings.vibrate || this.time - this.lastBuzz < 80) return;
+    this.lastBuzz = this.time;
+    navigator.vibrate(pattern);
   }
 
   // F1: every weapon gets 1000 ammo (the original's built-in cheat).
@@ -371,6 +427,15 @@ export class PlayScene implements Scene {
     drawText(ctx, 565, 58, str(s.ammo[s.weapon]));
     getSheet(s.weaponDef.icon).draw(ctx, WEAPON_ICON.x, WEAPON_ICON.y);
     this.renderCooldown(ctx);
+    this.rails?.update({
+      time: this.timeLeft,
+      score: s.displayScore,
+      kills: s.fairyKills,
+      weapon: s.weapon,
+      ammo: s.ammo,
+      cooldown: this.cooldownLeft(),
+      active: playing,
+    });
     if (import.meta.env.DEV) drawText(ctx, 0, 0, `${str(this.engine.fps)} FPS`);
 
     if (this.phase === 'play') {
@@ -387,12 +452,7 @@ export class PlayScene implements Scene {
   // A dark sweep over the weapon icon while a slow weapon reloads, or while
   // its bus / ion beam / piano is still out.
   private renderCooldown(ctx: CanvasRenderingContext2D): void {
-    const s = this.session;
-    const w = s.weaponDef;
-    let left = 0;
-    if (this.world.specialBusy(w.type)) left = 1;
-    else if (w.delay >= COOLDOWN_MIN_MS) left = Math.max(0, 1 - (this.time - s.lastShot[w.num]) / w.delay);
-    if (s.ammo[w.num] <= 0) left = 1;
+    const left = this.cooldownLeft();
     if (left <= 0) return;
     const { x, y, size } = WEAPON_ICON;
     ctx.save();
@@ -406,6 +466,16 @@ export class PlayScene implements Scene {
     ctx.closePath();
     ctx.fill();
     ctx.restore();
+  }
+
+  // 0-1: how much of the current weapon's reload is left (1 while its bus / ion
+  // beam / piano is still out, or it's empty).
+  private cooldownLeft(): number {
+    const s = this.session;
+    const w = s.weaponDef;
+    if (s.ammo[w.num] <= 0 || this.world.specialBusy(w.type)) return 1;
+    if (w.delay < COOLDOWN_MIN_MS) return 0;
+    return Math.max(0, 1 - (this.time - s.lastShot[w.num]) / w.delay);
   }
 
   // Streak counter and multiplier, just under the HUD bar (new).

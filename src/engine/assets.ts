@@ -96,6 +96,13 @@ export function imageUrl(group: ImageGroup, key: string): string {
   return base + entry.file;
 }
 
+// The 2x image's URL when this screen uses HD art, else null (for HTML <img>s,
+// which should fall back to imageUrl() if it fails to load).
+export function hdImageUrl(group: ImageGroup, key: string): string | null {
+  const entry = hdManifest[group]?.[key];
+  return entry ? `${base}hd/${entry.file}` : null;
+}
+
 export function hasImage(group: ImageGroup, key: string): boolean {
   return !!getManifest()[group][key];
 }

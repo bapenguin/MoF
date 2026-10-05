@@ -7,12 +7,14 @@ import { toLogical } from './screen';
 export interface Click {
   x: number;
   y: number;
+  touch?: boolean; // a finger (or pen) rather than a mouse: gets a little aim forgiveness
 }
 
 export class Input {
   x = 0;
   y = 0;
   down = false;
+  touch = false; // the pointer currently aiming is a finger or pen
   private clicks: Click[] = [];
   private keys: string[] = [];
 
@@ -29,7 +31,8 @@ export class Input {
       }
       this.move(e);
       this.down = true;
-      this.clicks.push({ x: this.x, y: this.y });
+      this.touch = e.pointerType === 'touch' || e.pointerType === 'pen';
+      this.clicks.push({ x: this.x, y: this.y, touch: this.touch });
     });
     canvas.addEventListener('pointermove', (e) => this.move(e));
     const up = () => (this.down = false);

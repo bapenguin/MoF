@@ -77,6 +77,11 @@ the dev server.
   when the window is bigger than 1024x768 in device pixels; the preview pane is small at DPR 1,
   so emulate a big viewport (e.g. 2048x1536) to test it. Screenshots of an emulated viewport
   bigger than the pane come out wrong: read pixels or export `canvas.toBlob()` instead.
+- Touch layout: `?touch=1` / `?touch=0` force the phone rails on or off; emulate a phone-landscape
+  viewport (e.g. 844x390). Dispatch `pointerdown` with `pointerType: 'touch'` to test aim slack.
+- The preview pane only runs `requestAnimationFrame` while it's being drawn, so the game loop
+  (loading, updates, rail refreshes) can stall between tool calls. Taking a screenshot lets it
+  run; don't mistake the stall for a hang.
 - Dev-only hooks: `window.__play` (current `PlayScene`), `window.__engine`, `window.__audio`.
   Prefer these over `import('/src/...')` in page scripts: after an edit Vite serves a fresh
   module copy, so a dynamic import can get a different instance from the running game.

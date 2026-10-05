@@ -12,10 +12,11 @@ export interface Settings {
   weather: boolean;
   shake: boolean; // screen shake on big hits (new)
   difficulty: Difficulty; // adventure difficulty (new)
+  vibrate: boolean; // a buzz on kills, on phones that support it (new)
 }
 
 const KEY = 'mof.settings';
-const DEFAULTS: Settings = { sound: true, music: true, ambient: true, weather: true, shake: true, difficulty: 'normal' };
+const DEFAULTS: Settings = { sound: true, music: true, ambient: true, weather: true, shake: true, difficulty: 'normal', vibrate: true };
 
 // Adventure difficulty: fairy hit points, fairy speed and the level clock.
 // Normal is the original game (with the boss rebalance).

@@ -483,7 +483,10 @@ export class World {
   }
 
   // Shot(): one trigger pull at (x, y). Returns false if the gun couldn't fire.
-  shoot(x: number, y: number): boolean {
+  // `slack` (new, touch only): a pixel-accurate shot that just misses snaps to the
+  // nearest fairy or crate pixel within this many logical pixels, since a fingertip
+  // can't aim like a mouse. With a mouse it's 0 and shots are exact, as in the original.
+  shoot(x: number, y: number, slack = 0): boolean {
     const s = this.session;
     const w = s.weaponDef;
     if (s.ammo[w.num] <= 0) return false;
@@ -511,6 +514,7 @@ export class World {
         return this.fireHole(x, y);
     }
 
+    if (slack > 0 && !isBlast(w)) [x, y] = this.aimAssist(x, y, slack);
     this.checkGiftHit(x, y);
     audio.play(w.sound, { x });
 
@@ -549,6 +553,33 @@ export class World {
     const percent = s.shots ? (s.hits / s.shots) * 100 : 0;
     s.rank = s.damage * percent;
     return true;
+  }
+
+  // The shot point, or if it hits nothing, the nearest opaque fairy pixel or crate
+  // within `slack` pixels.
+  private aimAssist(x: number, y: number, slack: number): [number, number] {
+    const live = this.fairies.filter((f) => f.state === State.Alive || f.state === State.Acting);
+    const onTarget = (px: number, py: number) =>
+      live.some((f) => f.sheet.hit(px - f.x, py - f.y, f.frame, this.row(f))) ||
+      this.gifts.some((g) => px >= g.x && px < g.x + g.sheet.frameW && py >= g.y && py < g.y + g.sheet.frameH);
+    if (onTarget(x, y)) return [x, y];
+    let best: [number, number] = [x, y];
+    let bestD = slack * slack + 1;
+    // Square rings outward in 2 px steps; every point on ring r is at least r away,
+    // so once r passes the best distance found nothing nearer is left.
+    for (let r = 2; r <= slack && r * r < bestD; r += 2) {
+      for (let dy = -r; dy <= r; dy += 2) {
+        for (let dx = -r; dx <= r; dx += 2) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const d = dx * dx + dy * dy;
+          if (d < bestD && onTarget(x + dx, y + dy)) {
+            best = [x + dx, y + dy];
+            bestD = d;
+          }
+        }
+      }
+    }
+    return best;
   }
 
   // KillFairy (really "hurt fairy").
