@@ -167,10 +167,27 @@ function convertFile(file) {
   return { scenario: convertScenarioBlock(child(tree, 'scenario')), levels, fairies };
 }
 
-function check(label, levels, fairies) {
-  const fairyIds = new Set(fairies.map((f) => f.id));
-  const levelIds = new Set(levels.map((l) => l.id));
-  for (const l of levels) {
+// Balance and bug-fix patches applied on top of the original data. The legacy
+// .txt files stay as they were; everything that differs from them is here.
+const PATCHES = {
+  wild(json) {
+    // The Afrocan Queen had 1000 HP with 40 s on the clock, and this scenario
+    // only gives you the pistol (1 damage a shot): effectively unbeatable.
+    // Simulated players at 100 HP: ~17 s frantic, ~29 s steady, ~40 s casual.
+    json.fairies.afrofairy.hp = 100;
+  },
+  fland(json, converted) {
+    // The "stairway" level spawns two "blue" fairies, but fland.txt never
+    // defined them, so the original silently skipped them. Use the definition
+    // from the Wilderness ('Lil Bastard: fast, worth 1000).
+    json.fairies.blue ??= structuredClone(converted.wild.fairies.blue);
+  },
+};
+
+function check(label, json) {
+  const fairyIds = new Set(Object.keys(json.fairies));
+  const levelIds = new Set(Object.keys(json.levels));
+  for (const l of Object.values(json.levels)) {
     for (const s of l.spawns) if (!fairyIds.has(s.type)) console.warn(`  ${label}/${l.id}: unknown fairy "${s.type}"`);
     if (l.next !== 'end' && !levelIds.has(l.next)) console.warn(`  ${label}/${l.id}: next level "${l.next}" missing`);
   }
@@ -179,9 +196,9 @@ function check(label, levels, fairies) {
 fs.mkdirSync(path.join(outDir, 'scenarios'), { recursive: true });
 
 const index = [];
+const converted = {};
 for (const meta of SCENARIOS) {
   const { scenario, levels, fairies } = convertFile(meta.file);
-  check(meta.id, levels, fairies);
   const json = {
     id: meta.id,
     title: meta.title,
@@ -192,6 +209,9 @@ for (const meta of SCENARIOS) {
     levels: Object.fromEntries(levels.map((l) => [l.id, l])),
     fairies: Object.fromEntries(fairies.map((f) => [f.id, f])),
   };
+  PATCHES[meta.id]?.(json, converted);
+  check(meta.id, json);
+  converted[meta.id] = json;
   fs.writeFileSync(path.join(outDir, 'scenarios', `${meta.id}.json`), JSON.stringify(json, null, 2) + '\n');
   index.push({ id: meta.id, title: meta.title, description: meta.description, worth: scenario.worth });
   console.log(`scenario ${meta.id}: ${levels.length} levels, ${fairies.length} fairy types`);

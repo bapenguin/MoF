@@ -298,6 +298,23 @@
         "fdie8",
         "fdie7"
       ]
+    },
+    "blue": {
+      "id": "blue",
+      "name": "'Lil Bastard",
+      "class": 0,
+      "sprite": "fairy2",
+      "deathSprite": "fairy2d1",
+      "frames": 8,
+      "hp": 2,
+      "speed": 750,
+      "intel": 10,
+      "worth": 1000,
+      "gift": 0,
+      "dieSounds": [
+        "fdie1",
+        "fdie7"
+      ]
     }
   }
 }

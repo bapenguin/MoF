@@ -391,7 +391,7 @@
       "sprite": "fboss1",
       "deathSprite": "fboss1",
       "frames": 2,
-      "hp": 1000,
+      "hp": 100,
       "speed": 300,
       "intel": 10,
       "worth": 12000,
