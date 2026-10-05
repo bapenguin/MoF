@@ -778,6 +778,234 @@
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
         cursor: pointer;
       }
+      /* Massacre builder on touch (src/scenes/massacre-touch.ts) */
+      .mm-go {
+        margin-left: auto;
+        min-width: 110px;
+        font-size: 22px;
+      }
+      .mm-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .mm-tabs {
+        flex: 1 1 300px;
+      }
+      .mm-tabs button {
+        min-height: 44px;
+      }
+      .mm-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .mm-actions .tm-btn {
+        min-height: 44px;
+        font-size: 15px;
+        padding: 6px 12px;
+      }
+      .mm-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .mm-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        padding-bottom: 8px;
+      }
+      .mm-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px;
+        background: var(--tm-panel);
+        border: 1px solid var(--tm-line);
+        border-radius: 12px;
+        text-align: center;
+      }
+      .mm-card.picked {
+        border: 2px solid var(--tm-yellow);
+        background: rgba(50, 80, 0, 0.9);
+      }
+      .mm-thumb-box {
+        height: 64px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .mm-thumb {
+        max-height: 64px;
+        height: 64px;
+        max-width: 100%;
+        background-repeat: no-repeat;
+        background-position: 0 0;
+      }
+      .mm-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+      }
+      .mm-name {
+        font-weight: bold;
+        font-size: 15px;
+        color: var(--tm-green);
+        line-height: 1.15;
+        min-height: 2.3em;
+        display: flex;
+        align-items: center;
+      }
+      .mm-tag {
+        font-size: 12px;
+        color: #f99;
+      }
+      .mm-tag.good {
+        color: var(--tm-muted);
+      }
+      .mm-stepper {
+        display: flex;
+        align-items: stretch;
+        gap: 4px;
+        width: 100%;
+        margin-top: auto;
+      }
+      .mm-stepper .tm-btn {
+        flex: 0 0 44px;
+        min-height: 44px;
+        padding: 0;
+        font-size: 24px;
+      }
+      .mm-stepper .tm-btn:disabled {
+        opacity: 0.35;
+      }
+      .tm .mm-stepper input[type='text'] {
+        flex: 1;
+        min-width: 0;
+        min-height: 44px;
+        padding: 0 4px;
+        text-align: center;
+        font-weight: bold;
+        color: var(--tm-yellow);
+      }
+      .mm-switch {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 8px;
+        font-size: 13px;
+        background: transparent;
+        border: 0;
+      }
+      .mm-scene {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 8px;
+      }
+      .mm-section {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+      .mm-tiles {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 136px;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .mm-tile {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 4px;
+        font: 12px Arial, Helvetica, sans-serif;
+        color: var(--tm-text);
+        text-transform: capitalize;
+        background: var(--tm-panel);
+        border: 1px solid var(--tm-line);
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      .mm-tile img {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border-radius: 6px;
+        background: #000;
+      }
+      .mm-tile.on,
+      .mm-chip.on {
+        border: 2px solid var(--tm-yellow);
+        background: rgba(50, 80, 0, 0.92);
+      }
+      .mm-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .mm-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 44px;
+        padding: 4px 14px;
+        font: bold 15px Arial, Helvetica, sans-serif;
+        color: var(--tm-text);
+        text-transform: capitalize;
+        background: var(--tm-panel);
+        border: 1px solid var(--tm-line);
+        border-radius: 22px;
+        cursor: pointer;
+      }
+      .mm-chip img {
+        height: 26px;
+        width: 120px;
+        object-fit: contain;
+        object-position: bottom;
+        border-radius: 4px;
+        background: linear-gradient(#7fa7cf, #c9dbe9); /* sky, so the transparent strip's plants show */
+      }
+      .mm-row {
+        display: grid;
+        grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr);
+        gap: 12px;
+      }
+      .mm-time {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .mm-time .mm-stepper {
+        width: 170px;
+        margin: 0;
+      }
+      .mm-toast {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        cursor: default;
+      }
+      .mm-toast .tm-btn {
+        align-self: flex-end;
+        min-height: 40px;
+        color: #000;
+        background: #fff;
+        border-color: #999;
+      }
+      .tm .mm-link {
+        min-height: 40px;
+        font-size: 16px;
+        color: #000;
+        background: #fff;
+        user-select: all;
+      }
       /* Squarer screens (tablets held upright): stack the columns. */
       @media (max-aspect-ratio: 1/1) {
         .tm-main {

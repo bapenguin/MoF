@@ -3,8 +3,7 @@
 Goal: make Massacre of the Fairies play properly on phones and tablets (touch-first UI, crisp
 high-res art) without forking the game.
 
-**Status (2026-10-05):** M1 and M3 done, M4 done except the Massacre builder, M2 mostly done
-(baked-text art still to redraw). Owner tried M1+M3 on their phone: sharper and good-looking, but
+**Status (2026-10-05):** M1, M3 and M4 done, M2 mostly done (baked-text art still to redraw). Owner tried M1+M3 on their phone: sharper and good-looking, but
 the original menus were too hard to tap (→ M4), and asked to drop the HUD bar for a bigger view.
 
 - **M4 menus:** on the touch layout `MenuScene.show()` hands each screen to
@@ -14,7 +13,11 @@ the original menus were too hard to tap (→ M4), and asked to drop the HUD bar 
   stars + difficulty + big Start (tapping the selected level again also starts), switch-style
   options that apply immediately, stats and Hall of Fame. Logic stays in `menu.ts` (some members
   made non-private for it; `hallOfFame()` / `faceUrl()` shared). Desktop menus unchanged.
-  **Still to do:** the Massacre builder (`massacre.ts`) on touch.
+  **Massacre builder** on touch: `src/scenes/massacre-touch.ts`, three tabs (Fairies: a card per
+  roster fairy with its first sprite frame and a −/count/+ stepper; Weapons: icon, on/off switch,
+  ammo stepper; Scene: locale picture strip, foreground/music chips, weather, time with presets),
+  GO always in the header, Random/Reset/Share beside the tabs, messages and share links as a
+  banner. The rules stay in `massacre.ts` (`addFairies()` now shared by both builders).
 - **HUD bar dropped on touch:** during play `screen.ts` `viewTop` crops the 83 px HUD strip off
   the top (fairies never go there), so the playfield shows 1024x685 and gets ~12% bigger; the left
   rail gained the level name and Rank. Input, the overlay and the canvas transform all account for

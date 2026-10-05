@@ -2,11 +2,15 @@
 // fairies and how many, a locale, foreground, music, weather and a time limit,
 // then GO. The original wrote all this to massacre.mof and loaded it like any
 // scenario; here the same scenario is built in memory.
+//
+// On the touch layout the same setup is edited at finger size by massacre-touch.ts;
+// the rules (limits, Random, GO, sharing) stay here.
 
 import type { Engine, Scene } from '../engine/engine';
 import { audio } from '../engine/audio';
 import { getManifest, imageUrl } from '../engine/assets';
 import { getSheet } from '../engine/sprites';
+import { layout } from '../engine/screen';
 import type { LevelDef, ScenarioDef } from '../game/data';
 import renames from '../../data/renames.json';
 import { scenarioTasks } from '../game/preload';
@@ -28,12 +32,13 @@ import { h } from '../ui/dom';
 import { LoadingScene } from './loading';
 import { PlayScene } from './play';
 import { MenuScene, MENU_MUSIC } from './menu';
+import { TouchMassacre } from './massacre-touch';
 
-const DEFAULT_AMMO = 50; // filled in when a weapon is ticked with no ammo typed
+export const DEFAULT_AMMO = 50; // filled in when a weapon is ticked with no ammo typed
 const KEY = 'mof.massacre';
 
 // The arsenal checkbox captions from mmode.frm (weapon 1 is always included).
-const ARSENAL: Array<[number, string]> = [
+export const ARSENAL: Array<[number, string]> = [
   [1, 'Magnum'],
   [2, 'Shotgun'],
   [3, 'Machine Gun'],
@@ -75,10 +80,12 @@ const label = (text: string, pos: ReturnType<typeof at>, size = 21) =>
 
 export class MassacreScene implements Scene {
   private engine!: Engine;
-  private config = loadConfig();
-  private message = '';
-  private shareLink = '';
+  // Read by massacre-touch.ts too.
+  config = loadConfig();
+  message = '';
+  shareLink = '';
   private starting = false;
+  private touch: TouchMassacre | null = null;
 
   // `shared`: a setup that arrived in a link, loaded in place of the saved one.
   constructor(
@@ -88,6 +95,7 @@ export class MassacreScene implements Scene {
 
   enter(engine: Engine): void {
     this.engine = engine;
+    if (layout.touch) this.touch = new TouchMassacre(this);
     audio.play(MENU_MUSIC, { channel: 'music', loop: true });
     if (this.shared) {
       this.config = this.shared;
@@ -98,6 +106,7 @@ export class MassacreScene implements Scene {
   }
 
   exit(): void {
+    this.touch?.destroy();
     audio.stop(MENU_MUSIC);
   }
 
@@ -110,17 +119,18 @@ export class MassacreScene implements Scene {
     getSheet('massacre-bg', 'ui').draw(ctx, 0, 0);
   }
 
-  private get totalFairies(): number {
+  get totalFairies(): number {
     return this.config.fairies.reduce((a, f) => a + f.count, 0);
   }
 
-  private change(fn: (c: Config) => void): void {
+  change(fn: (c: Config) => void): void {
     fn(this.config);
     saveConfig(this.config);
     this.build();
   }
 
-  private build(): void {
+  build(): void {
+    if (this.touch) return this.touch.render();
     const c = this.config;
     const m = getManifest();
     const els: HTMLElement[] = [
@@ -146,7 +156,7 @@ export class MassacreScene implements Scene {
       h('button', { text: 'GO', at: at(232, 568, 121, 76), style: { font: '48px Arial' }, onClick: () => void this.go() }),
       h('button', { text: 'Random Massacre', at: at(232, 652, 121, 25), onClick: () => this.random() }),
       h('button', { text: 'Reset All', at: at(472, 584, 105, 21), onClick: () => this.change((c) => Object.assign(c, blankConfig())) }),
-      h('button', { text: 'QUIT', at: at(400, 662, 201, 21), onClick: () => this.engine.setScene(new MenuScene()) }),
+      h('button', { text: 'QUIT', at: at(400, 662, 201, 21), onClick: () => this.quit() }),
       h('button', { text: 'Share this massacre', at: at(632, 646, 185, 26), onClick: () => void this.share() }),
     ];
     if (this.message) els.push(this.popup(this.message, this.shareLink));
@@ -176,6 +186,25 @@ export class MassacreScene implements Scene {
     });
   }
 
+  quit(): void {
+    this.engine.setScene(new MenuScene());
+  }
+
+  // Adds `n` of a fairy (negative removes), within the original's limits.
+  // Returns why it couldn't, or null.
+  addFairies(id: string, n: number): string | null {
+    const c = this.config;
+    const existing = c.fairies.find((f) => f.id === id);
+    if (n > 0 && !existing && c.fairies.length >= MAX_TYPES) return `That's ${MAX_TYPES} kinds of fairy already.`;
+    if (n > 0 && this.totalFairies + n > MAX_FAIRIES) return `Only ${MAX_FAIRIES} fairies fit on screen at once.`;
+    this.change((c) => {
+      if (existing) existing.count = Math.max(0, existing.count + n);
+      else if (n > 0) c.fairies.push({ id, count: n });
+      c.fairies = c.fairies.filter((f) => f.count > 0);
+    });
+    return null;
+  }
+
   private fairyPicker(): HTMLElement[] {
     const c = this.config;
     const available = h(
@@ -186,15 +215,11 @@ export class MassacreScene implements Scene {
     const count = h('input', { type: 'text', inputmode: 'numeric', at: at(472, 400, 49, 33), style: { fontSize: '18px' } });
     const submit = () => {
       const id = available.value;
-      const n = Math.floor(Number(count.value));      if (!id) return this.toast('Pick a fairy from the list first.');
+      const n = Math.floor(Number(count.value));
+      if (!id) return this.toast('Pick a fairy from the list first.');
       if (!(n > 0)) return this.toast('How many? Type a number in the box.');
-      const existing = c.fairies.find((f) => f.id === id);
-      if (!existing && c.fairies.length >= MAX_TYPES) return this.toast(`That's ${MAX_TYPES} kinds of fairy already.`);
-      if (this.totalFairies + n > MAX_FAIRIES) return this.toast(`Only ${MAX_FAIRIES} fairies fit on screen at once.`);
-      this.change((c) => {
-        if (existing) existing.count += n;
-        else c.fairies.push({ id, count: n });
-      });
+      const problem = this.addFairies(id, n);
+      if (problem) this.toast(problem);
     };
     count.addEventListener('keydown', (e) => e.key === 'Enter' && submit());
     available.addEventListener('dblclick', () => count.focus());
@@ -266,7 +291,7 @@ export class MassacreScene implements Scene {
   // Command6_Click: random ammo for some weapons (1 in 5 each), up to eight
   // random fairy batches, and a random locale, foreground and music. Unlike the
   // original it starts from a clean slate, so repeated clicks don't pile up.
-  private random(): void {
+  random(): void {
     const pick = <T>(list: T[]) => list[Math.floor(Math.random() * list.length)];
     const m = getManifest();
     this.change((c) => {
@@ -289,7 +314,7 @@ export class MassacreScene implements Scene {
   }
 
   // Command2_Click: build the custom scenario and play it.
-  private async go(): Promise<void> {
+  async go(): Promise<void> {
     if (this.starting) return;
     const c = this.config;
     if (!c.fairies.length) return this.toast('Submit some fairies for slaughtering first!');
@@ -329,14 +354,14 @@ export class MassacreScene implements Scene {
     );
   }
 
-  private toast(message: string, link = ''): void {
+  toast(message: string, link = ''): void {
     this.message = message;
     this.shareLink = link;
     this.build();
   }
 
   // Share (new): the setup as a link, copied to the clipboard if the browser allows.
-  private async share(): Promise<void> {
+  async share(): Promise<void> {
     if (!this.config.fairies.length) return this.toast('Add some fairies first, then share your massacre.');
     const link = setupLink(this.config);
     let copied = false;
