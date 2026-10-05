@@ -79,7 +79,7 @@ The raw BMP/WAV/AVI originals total about 180 MB. Either keep them out of git (c
 
 | # | Milestone | Done when |
 |---|---|---|
-| 0 | Repo scaffold, Vite + TS, asset + data conversion scripts | `npm run assets` produces PNG/WebP/OGG + JSON. GitHub Pages deploy via Actions |
+| 0 | Repo scaffold, Vite + TS, asset + data conversion scripts | `npm run assets` produces PNG/WebP/MP3 + JSON. CI build via Actions |
 | 1 | Engine: scaled canvas, sprite sheets, loader, input, audio, fixed-step loop | A background + one animated fairy + click sound |
 | 2 | Core gameplay: all 4 fairy classes, states, pistol/shotgun/MG/howitzer, splats/gore, score popups, HUD/top bar, timer, level → next | `wild.txt` fully playable start to finish |
 | 3 | Special weapons: mines (chain), bus, ion, piano, black hole, and gifts/ammo drops | All 9 weapons + F1 cheat work |
@@ -90,6 +90,9 @@ The raw BMP/WAV/AVI originals total about 180 MB. Either keep them out of git (c
 
 Phases 0–2 are the bulk of the risk. Everything after that is additive.
 
+### Hosting
+GitHub Pages isn't available on this account, so the game is built as a static site with relative paths (`base: './'`) for upload to any web server, in any folder. The CI workflow builds on every push and publishes the `dist/` folder as a downloadable `mof-web` artifact.
+
 ### Status
 - **Phase 6: done.** `src/scenes/massacre.ts` rebuilds mmode.frm with its original layout and captions: arsenal checkboxes and ammo boxes (typing ammo ticks the weapon), fairy roster from `data/fairies.json`, "Fairies Ready to Die" (15 types / 200 fairies max), locale, foreground, music, weather, time limit, GO, Random Massacre, Reset All, QUIT. GO builds the custom scenario in memory (the original wrote `massacre.mof`). Fairies respawn; the game ends on time with the `win.bmp` card and returns to the builder with settings kept (also saved in `localStorage`). Massacre games add weapon/fairy/streak stats to the profile but not score/levels, as in the original. Changes: fairies listed by name rather than data id; repeated batches of the same fairy merge; Random Massacre starts from a clean slate; ticking a weapon with no ammo typed gives it 50; GO needs at least one fairy.
 - **Phase 5: done.** `src/scenes/menu.ts` rebuilds the original front end (test.frm) as HTML panels over the canvas, using art extracted from `test.frx` by `npm run assets`: main menu, login, "Fairy Adventures" scenario select (with progressive unlocks), Options, User Stats card, MoF HoF and the quit screen; menu music. `src/game/profiles.ts` stores players in `localStorage` (no passwords); the play scene records stats per level as the original's `userstats`/`writeguy` did, without its double-counted score. Changes: locked scenarios are shown dimmed with a hint (the original hid them); the HoF fills all five categories (the original left two blank) and Best Shot needs 50+ shots; players named Nick, Dave or Bozo get the developers' face photos, as in the original.
@@ -98,7 +101,7 @@ Phases 0–2 are the bulk of the risk. Everything after that is additive.
 - **Phase 2: done.** `src/game/world.ts` ports the fairy simulation (all 4 classes, act/dying states, intel turning, knockback damping, Massacre respawn), `Shot`/`KillFairy` for pistol, shotgun, machine gun and howitzer, gore splats, score pop-ups, ammo-crate gifts (pulled forward from Phase 3), level music/ambient/beach ocean loop and foregrounds. `src/scenes/play.ts` is the level flow: timer, HUD, round-summary card, victory (`win2`), game over (`endgame`), Q to quit, F1 cheat. A temporary `devmenu.ts` lists all 4 scenarios until the real menus. Bot-played through all of `des` and `wild` (incl. the boss with F1 + machine gun). Deliberate changes: hit test uses the visible frame and width; streaks count for every weapon; summary shows the next level's name instead of its id; gift pickup bounds fixed.
 - **Notes from playtesting:** the Wilderness boss (Afrocan Queen, 1000 HP, 40 s) can't really be killed with the pistol, which is all that scenario gives you. That's original behaviour, but a balance tweak is worth considering. The original also shows the same "Scenario 1 Complete" card (`win2.bmp`) after every scenario.
 - **Phase 1: done.** `src/engine/`: `Engine` (fixed 60 Hz step + scene manager, sim clock replaces `GetTickCount`), `SpriteSheet` (frame grid, `putpic`-style draw, lazy per-pixel hit masks using the *current* frame, which fixes the VB frame-0 bug), `audio` (Web Audio, one voice per key like DirectSound buffers, working stereo pan, music/sfx/ambient channels, preload before unlock), `Input` (pointer + keys in logical coords, queued per step), `drawText`/`str` (HUD text à la `DoText`/`Str$`). `src/scenes/`: loading screen (progress + click-to-start audio unlock) and an engine sandbox with all four fairy classes.
-- **Phase 0: done.** Scaffold, `npm run assets` (181 files, ~180 MB → 16.5 MB), `npm run data` (4 scenarios + Massacre roster → `data/`), Pages workflow, smoke-test page (scaled canvas, background, keyed animated sprite, panned shot sound).
+- **Phase 0: done.** Scaffold, `npm run assets` (181 files, ~180 MB → 16.5 MB), `npm run data` (4 scenarios + Massacre roster → `data/`), CI workflow, smoke-test page (scaled canvas, background, keyed animated sprite, panned shot sound).
 
 ## 7. Before publishing publicly
 

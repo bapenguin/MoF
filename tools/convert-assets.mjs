@@ -160,6 +160,8 @@ await extractFrxImages();
 await convertSounds();
 // The in-game cursor (frmmain.frm MouseIcon); browsers accept .cur directly.
 fs.copyFileSync(path.join(legacy, 'cursor.cur'), path.join(outRoot, 'ui', 'cursor.cur'));
+// The original app icon doubles as the site favicon.
+fs.copyFileSync(path.join(legacy, 'mof.ico'), path.join(root, 'public', 'favicon.ico'));
 
 for (const group of Object.keys(manifest)) {
   manifest[group] = Object.fromEntries(Object.entries(manifest[group]).sort(([a], [b]) => a.localeCompare(b)));

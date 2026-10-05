@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 
-// GitHub Pages serves the site from /MoF/, so asset URLs need that prefix in production.
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/MoF/' : '/',
+// Relative asset paths, so the built site works from any folder on any web
+// server (e.g. https://example.com/games/mof/) without reconfiguring.
+export default defineConfig({
+  base: './',
   build: { target: 'es2022' },
-}));
+});

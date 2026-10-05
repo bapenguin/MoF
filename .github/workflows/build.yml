@@ -1,18 +1,16 @@
-name: Deploy to GitHub Pages
+name: Build
+
+# Builds the game on every push and attaches the ready-to-upload site as a
+# downloadable artifact ("mof-web") on the workflow run page.
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -27,16 +25,8 @@ jobs:
       # Converted assets in public/assets and data/ are committed, so CI
       # doesn't need the raw legacy media or ffmpeg.
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: mof-web
           path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          retention-days: 30

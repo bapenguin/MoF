@@ -34,5 +34,20 @@ npm run data     # legacy/*.txt scenarios -> data/*.json
 
 ## Deploying
 
-Pushing to `main` builds and deploys to GitHub Pages via `.github/workflows/deploy.yml`.
-Enable it once under **Settings → Pages → Source: GitHub Actions**.
+The game is a plain static site, so any web server works (Apache, nginx, IIS, shared
+hosting, an S3 bucket, ...). There is no server-side code and no special configuration.
+
+```bash
+npm run build
+```
+
+Upload the **contents** of `dist/` to any folder on the server. Paths are relative, so
+it works at the site root or in a subfolder like `https://example.com/games/mof/`.
+It must be served over `http(s)://`; opening `dist/index.html` straight from disk won't work.
+
+Every push to `main` also builds the site on GitHub (`.github/workflows/build.yml`):
+open the workflow run under the **Actions** tab and download the `mof-web` artifact,
+which is the same `dist/` folder as a zip.
+
+Player profiles, settings and Massacre setups are saved in each visitor's browser
+(`localStorage`), so nothing needs to be stored on the server.
