@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "assets": "node tools/convert-assets.mjs",
-    "data": "node tools/convert-data.mjs"
+    "data": "node tools/convert-data.mjs",
+    "upscale": "node tools/upscale-assets.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.0",

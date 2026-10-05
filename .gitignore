@@ -23,3 +23,8 @@ legacy/**/*.psp
 
 # Upload bundle made from dist/
 mof-web.zip
+
+# Real-ESRGAN binary for `npm run upscale` (download it; see tools/upscale-assets.mjs)
+tools/bin/
+# 2x art staged for review by `npm run upscale`
+upscaled/

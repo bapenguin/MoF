@@ -22,6 +22,11 @@ art/sound, regenerating icons) needs the raw files: copy `legacy/BG`, `legacy/fg
 `legacy/sfx` and the root-level `legacy/*.bmp` over from the original machine (`D:\Development\Fairy\legacy`).
 `npm run data` works without them (the scenario `.txt` files are committed).
 
+`npm run upscale` (2x art for phones, see `MOBILE_PLAN.md`) also needs the raw files, plus the
+Real-ESRGAN Windows build (`realesrgan-ncnn-vulkan-20220424-windows.zip` from the
+xinntao/Real-ESRGAN GitHub releases) unzipped to `tools/bin/realesrgan/` (gitignored). Output is
+staged in `upscaled/` (gitignored); review it at `/tools/upscale-review.html` on the dev server.
+
 ## Layout
 
 | Path | What |
@@ -32,7 +37,7 @@ art/sound, regenerating icons) needs the raw files: copy `legacy/BG`, `legacy/fg
 | `src/scenes/` | `menu.ts` (main menu, login, scenario + level select, options, stats, Hall of Fame, quit), `play.ts` (level flow, HUD, pause, summary/stars, game over/retry), `massacre.ts` (Massacre builder), `loading.ts` |
 | `src/ui/dom.ts` | `h()` helper for the HTML menu overlay (`#ui`), laid out in logical 1024×768 px |
 | `data/` | Generated JSON (scenarios, Massacre roster, `renames.json`). **Don't hand-edit**: change `tools/convert-data.mjs` and run `npm run data` |
-| `tools/` | `convert-assets.mjs` (BMP→PNG/WebP with black colour key, WAV→MP3, menu art out of `.frx` files, icons), `convert-data.mjs` (`.txt`→JSON + `RENAMES` + `PATCHES`), `sw.template.js` (service worker) |
+| `tools/` | `upscale-assets.mjs` (defringe + Real-ESRGAN x4plus → 2x art in `upscaled/`) + `upscale-review.html`, `convert-assets.mjs` (BMP→PNG/WebP with black colour key, WAV→MP3, menu art out of `.frx` files, icons), `convert-data.mjs` (`.txt`→JSON + `RENAMES` + `PATCHES`), `sw.template.js` (service worker) |
 | `public/` | Committed converted assets, icons, `manifest.webmanifest`, favicon |
 | `legacy/` | Original VB6 source and data, for reference. Leave unchanged |
 | `vite.config.ts` | `base: './'` (works in any folder) + plugin that generates `dist/sw.js` with the precache list |
