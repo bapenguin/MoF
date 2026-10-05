@@ -41,15 +41,36 @@ class AudioEngine {
       return g;
     };
     this.channels = { sfx: mk('sfx'), music: mk('music'), ambient: mk('ambient') };
+
+    // Browsers (iOS Safari especially) only let audio start from inside a user
+    // gesture's event handler, so unlock on the first tap/click/key directly.
+    const gesture = () => void this.unlock();
+    for (const type of ['pointerdown', 'touchend', 'keydown']) {
+      window.addEventListener(type, gesture, { capture: true, passive: true });
+    }
   }
+
+  private held = false; // suspended by the game (paused), not by the browser
 
   // Browsers keep the context suspended until a user gesture.
   get unlocked(): boolean {
-    return this.ctx.state === 'running';
+    return this.ctx.state === 'running' || this.held;
   }
 
   unlock(): Promise<void> {
+    if (this.held || this.ctx.state === 'running') return Promise.resolve();
     return this.ctx.resume();
+  }
+
+  // Pause everything that's playing (game paused), and pick up where it left off.
+  hold(): void {
+    this.held = true;
+    void this.ctx.suspend();
+  }
+
+  release(): void {
+    this.held = false;
+    void this.ctx.resume();
   }
 
   // Decoding works while suspended, so sounds can be preloaded on the loading screen.

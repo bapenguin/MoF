@@ -21,7 +21,12 @@ export class Input {
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     canvas.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
-      canvas.setPointerCapture(e.pointerId);
+      try {
+        // Keeps rapid fire tracking a finger/mouse that drags off the canvas.
+        canvas.setPointerCapture(e.pointerId);
+      } catch {
+        // Unknown pointer (e.g. synthetic events): capture is a nicety, never lose the shot.
+      }
       this.move(e);
       this.down = true;
       this.clicks.push({ x: this.x, y: this.y });

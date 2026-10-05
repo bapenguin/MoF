@@ -7,9 +7,13 @@ import { getSheet } from '../engine/sprites';
 import { drawText, str } from '../engine/text';
 import { SCREEN_W, SCREEN_H } from '../engine/screen';
 import type { ScenarioDef } from '../game/data';
-import { GameMode, Session, World } from '../game/world';
+import { GameMode, SCREENTOP, Session, World } from '../game/world';
 import { WEAPONS, isRapid } from '../game/weapons';
 import { saveProfile, type Profile } from '../game/profiles';
+import { h } from '../ui/dom';
+
+// The HUD bar's weapon box: tapping it switches weapon (keys 1-9 do too).
+const WEAPON_BOX = { left: 360, right: 460 };
 
 type Phase = 'play' | 'summary' | 'victory' | 'gameover';
 
@@ -29,6 +33,13 @@ export class PlayScene implements Scene {
   private timeLeft = 0;
   private music?: string;
   private loopSounds: string[] = [];
+  // Game clock in ms. Unlike engine.now it stops while paused, so the level
+  // timer, waits and weapon cooldowns all freeze.
+  private time = 0;
+  private paused = false;
+  private onVisibility = () => {
+    if (document.hidden && this.phase === 'play') this.pause();
+  };
   // What has already been added to the profile, so each commit adds only the difference.
   private committed = { score: 0, weaponShots: [] as number[], kills: {} as Record<string, number> };
 
@@ -45,12 +56,53 @@ export class PlayScene implements Scene {
   enter(engine: Engine): void {
     this.engine = engine;
     if (import.meta.env.DEV) (window as unknown as { __play: PlayScene }).__play = this;
+    document.addEventListener('visibilitychange', this.onVisibility);
     this.startLevel(this.scenario.start);
     this.session.switchWeapon(1);
   }
 
   exit(): void {
+    document.removeEventListener('visibilitychange', this.onVisibility);
+    if (this.paused) audio.release();
     audio.stopAll();
+  }
+
+  // Esc / P, the HUD bar, or switching tabs. Sound pauses and the clock stops.
+  private pause(): void {
+    if (this.paused || this.phase !== 'play') return;
+    this.paused = true;
+    this.engine.input.down = false;
+    audio.hold();
+    const hint = (text: string) => h('div', { text, style: { font: '14px Arial', color: '#cfc', marginTop: '6px' } });
+    this.engine.overlay.replaceChildren(
+      h('div', { at: [0, 0, SCREEN_W, SCREEN_H], style: { background: 'rgba(0,0,0,0.55)' } }, [
+        h('div', {
+          class: 'panel',
+          at: [337, 250, 350, 230],
+          style: { background: 'rgb(0,64,0)', border: '2px outset #4a4', boxSizing: 'border-box', textAlign: 'center', padding: '16px' },
+        }, [
+          h('div', { text: 'PAUSED', style: { font: 'bold 40px Arial', color: '#0f0', marginBottom: '6px' } }),
+          hint('Esc or P to carry on · Q to quit'),
+          hint('Tap the weapon box to switch weapons'),
+          hint('Tap the top bar to pause'),
+          h('button', { text: 'Resume', at: [40, 172, 120, 30], onClick: () => this.resume() }),
+          h('button', { text: 'Quit game', at: [186, 172, 120, 30], onClick: () => this.quitFromPause() }),
+        ]),
+      ]),
+    );
+  }
+
+  private resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    this.engine.overlay.replaceChildren();
+    this.engine.input.takeClicks(); // the click that resumed isn't a shot
+    audio.release();
+  }
+
+  private quitFromPause(): void {
+    this.resume();
+    this.endGame(false);
   }
 
   // SetupLevel
@@ -58,7 +110,7 @@ export class PlayScene implements Scene {
     const level = this.scenario.levels[id];
     if (!level) throw new Error(`level ${id} not found in ${this.scenario.id}`);
     audio.stopAll();
-    this.world = new World(this.session, level, this.engine.now);
+    this.world = new World(this.session, level, this.time);
     this.music = level.music;
     audio.play(level.music, { channel: 'music', loop: true });
     // Background loops: rain with rainy weather, and the original special-cased
@@ -67,14 +119,14 @@ export class PlayScene implements Scene {
     if (this.world.weather?.kind === 'rain') this.loopSounds.push('rain');
     if (level.bg === 'beach') this.loopSounds.push('ocean');
     for (const key of this.loopSounds) audio.play(key, { channel: 'ambient', loop: true });
-    this.levelStart = this.engine.now;
+    this.levelStart = this.time;
     this.timeLeft = level.timeLimit;
     this.setPhase('play');
   }
 
   private setPhase(phase: Phase): void {
     this.phase = phase;
-    this.phaseStart = this.engine.now;
+    this.phaseStart = this.time;
   }
 
   private get level() {
@@ -82,9 +134,20 @@ export class PlayScene implements Scene {
   }
 
   update(dt: number): void {
-    const { input, now } = this.engine;
+    const { input } = this.engine;
     const clicks = input.takeClicks();
     const keys = input.takeKeys();
+
+    if (this.paused) {
+      for (const key of keys) {
+        if (key === 'Escape' || key === 'KeyP') this.resume();
+        else if (key === 'KeyQ') this.quitFromPause();
+      }
+      return;
+    }
+
+    this.time += dt * 1000;
+    const now = this.time;
 
     if (this.phase !== 'play') {
       this.updateWaiting(clicks.length > 0);
@@ -96,12 +159,22 @@ export class PlayScene implements Scene {
       if (digit) this.session.switchWeapon(Number(digit[1]));
       else if (key === 'KeyQ') return this.endGame(false);
       else if (key === 'F1') this.cheat();
+      else if (key === 'Escape' || key === 'KeyP') return this.pause();
+    }
+
+    // Fairies never go above the HUD bar, so taps there are controls rather
+    // than shots: the weapon box cycles weapons, anywhere else pauses.
+    // (Lets touch players do without a keyboard.)
+    for (const c of clicks) {
+      if (c.y >= SCREENTOP) continue;
+      if (c.x >= WEAPON_BOX.left && c.x < WEAPON_BOX.right) this.session.nextWeapon();
+      else return this.pause();
     }
 
     // One shot per update, like the original: the latest click, or the cursor
     // position while the trigger is held on a rapid-fire weapon.
-    let shot = clicks.at(-1);
-    if (input.down && isRapid(this.session.weaponDef)) shot = { x: input.x, y: input.y };
+    let shot = clicks.filter((c) => c.y >= SCREENTOP).at(-1);
+    if (input.down && input.y >= SCREENTOP && isRapid(this.session.weaponDef)) shot = { x: input.x, y: input.y };
     if (shot) this.world.shoot(shot.x, shot.y);
 
     this.world.update(dt, now);
@@ -171,7 +244,7 @@ export class PlayScene implements Scene {
   // waitforclick(delay, seconds): ignore clicks for `delay` seconds, then
   // continue on a click, or automatically after `seconds` (0 = never).
   private updateWaiting(clicked: boolean): void {
-    const elapsed = (this.engine.now - this.phaseStart) / 1000;
+    const elapsed = (this.time - this.phaseStart) / 1000;
     const [delay, timeout] = this.phase === 'victory' ? [3, 0] : this.phase === 'summary' ? [5, 0] : [5, 15];
     if (elapsed < delay) return;
     if (!clicked && !(timeout && elapsed >= timeout)) return;
@@ -188,7 +261,7 @@ export class PlayScene implements Scene {
 
   render(ctx: CanvasRenderingContext2D): void {
     const s = this.session;
-    this.world.render(ctx, this.engine.now);
+    this.world.render(ctx, this.time);
 
     // HUD, at the original DoText positions.
     drawText(ctx, 300, 60, str(Math.max(0, this.timeLeft)));

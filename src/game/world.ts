@@ -146,6 +146,18 @@ export class Session {
     audio.play('switch');
   }
 
+  // Next weapon (wrapping round) that has ammo: the touch-friendly way to switch.
+  nextWeapon(): void {
+    const count = WEAPONS.length;
+    for (let i = 1; i <= count; i++) {
+      const num = ((this.weapon - 1 + i) % count) + 1;
+      if (this.ammo[num] > 0) {
+        if (num !== this.weapon) this.switchWeapon(num);
+        return;
+      }
+    }
+  }
+
   // Rolls the displayed score towards the real one (DrawFairies DScore logic).
   tickDisplayScore(): void {
     const diff = Math.abs(this.displayScore - this.score);

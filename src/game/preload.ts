@@ -63,8 +63,13 @@ export function scenarioTasks(scenario: ScenarioDef): Task[] {
     if (l.ambient) sounds.add(l.ambient);
   }
 
+  // Sprites that get pixel-tested when shot: build their hit masks while loading.
+  const shootable = new Set(Object.values(scenario.fairies).flatMap((f) => [f.sprite, f.actSprite ?? '']));
+
   return [
-    ...[...sprites].map(([key, [fx, fy]]) => () => loadSheet(key, fx, fy)),
+    ...[...sprites].map(([key, [fx, fy]]) => () =>
+      loadSheet(key, fx, fy).then((s) => (shootable.has(key) ? s.warmMask() : s)),
+    ),
     ...[...backgrounds].map((key) => () => loadSheet(key, 1, 1, 'bg')),
     ...[...foregrounds].map((key) => () => loadSheet(key, 1, 1, 'fg')),
     ...[...sounds].map((key) => () => audio.load(key)),

@@ -33,7 +33,8 @@ export function loadImage(group: ImageGroup, key: string): Promise<HTMLImageElem
     if (!entry) return Promise.reject(new Error(`missing image ${id}`));
     p = new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      // Decode now (on the loading screen) rather than on first draw mid-game.
+      img.onload = () => img.decode().catch(() => {}).then(() => resolve(img));
       img.onerror = () => reject(new Error(`failed to load ${id}`));
       img.src = base + entry.file;
     });

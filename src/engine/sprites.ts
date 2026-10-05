@@ -43,6 +43,13 @@ export class SpriteSheet {
     return mask[(fy * this.frameH + ly) * this.image.width + fx * this.frameW + lx] !== 0;
   }
 
+  // Builds the hit mask ahead of time (during loading) so the first shot at a
+  // new fairy type doesn't stall a frame.
+  warmMask(): this {
+    this.getMask();
+    return this;
+  }
+
   // Built on first use, since most sheets (backgrounds, UI art) are never hit-tested.
   private getMask(): Uint8Array {
     if (!this.mask) {

@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Massacre of the Fairies</title>
     <link rel="icon" href="/favicon.ico" />
     <style>
@@ -12,10 +14,58 @@
         height: 100%;
         background: #000;
         overflow: hidden;
+        overscroll-behavior: none;
       }
       #game {
         position: absolute;
         cursor: crosshair;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #fullscreen {
+        position: fixed;
+        right: 6px;
+        bottom: 6px;
+        z-index: 5;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        font-size: 20px;
+        line-height: 1;
+        color: #cfc;
+        background: rgba(0, 40, 0, 0.6);
+        border: 1px solid rgba(160, 255, 160, 0.4);
+        border-radius: 4px;
+        cursor: pointer;
+        opacity: 0.5;
+      }
+      #fullscreen:hover {
+        opacity: 1;
+      }
+      /* The game is 4:3 landscape; on a phone held upright it would be tiny. */
+      #rotate {
+        display: none;
+      }
+      @media (orientation: portrait) and (max-width: 700px) {
+        #rotate {
+          display: flex;
+          position: fixed;
+          inset: 0;
+          z-index: 10;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          background: rgba(0, 0, 0, 0.88);
+          color: #8f8;
+          font: bold 20px Arial, sans-serif;
+          text-align: center;
+          padding: 24px;
+        }
+        #rotate span {
+          font-size: 56px;
+        }
       }
       /* Menu layer: laid out in the original's 1024x768 pixels, scaled to fit. */
       #ui {
@@ -102,6 +152,8 @@
   <body>
     <canvas id="game" width="1024" height="768"></canvas>
     <div id="ui"></div>
+    <button id="fullscreen" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
+    <div id="rotate"><span>⟳</span>Turn your phone sideways to massacre fairies</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

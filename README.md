@@ -5,6 +5,19 @@ Shoot fairies with nine increasingly ridiculous weapons, from a pistol to a fall
 
 See [PLAN.md](PLAN.md) for the port plan and status.
 
+## Controls
+
+| | Mouse / keyboard | Touch |
+|---|---|---|
+| Shoot | Click (hold for machine gun / howitzer) | Tap (hold for rapid fire) |
+| Switch weapon | `1`–`9`, or click the weapon box in the top bar | Tap the weapon box in the top bar |
+| Pause | `Esc` or `P`, or click the top bar | Tap the top bar |
+| Quit level | `Q` (or Quit in the pause panel) | Quit in the pause panel |
+| Fullscreen | `F` or the ⛶ button | ⛶ button (where the browser allows it) |
+| Cheat | `F1`: 1000 ammo for every weapon (the original's) | – |
+
+The game pauses itself when you switch tabs. On phones, play in landscape.
+
 ## Running locally
 
 ```bash
