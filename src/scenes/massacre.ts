@@ -7,36 +7,30 @@ import type { Engine, Scene } from '../engine/engine';
 import { audio } from '../engine/audio';
 import { getManifest, imageUrl } from '../engine/assets';
 import { getSheet } from '../engine/sprites';
-import type { FairyDef, LevelDef, ScenarioDef } from '../game/data';
-import roster from '../../data/fairies.json';
+import type { LevelDef, ScenarioDef } from '../game/data';
 import renames from '../../data/renames.json';
 import { scenarioTasks } from '../game/preload';
 import { GameMode } from '../game/world';
 import { WEAPONS } from '../game/weapons';
 import type { Profile } from '../game/profiles';
+import {
+  FAIRIES,
+  MAX_AMMO,
+  MAX_FAIRIES,
+  MAX_TIME,
+  MAX_TYPES,
+  blankSetup as blankConfig,
+  setupLink,
+  type MassacreSetup as Config,
+  type Weather,
+} from '../game/share';
 import { h } from '../ui/dom';
 import { LoadingScene } from './loading';
 import { PlayScene } from './play';
 import { MenuScene, MENU_MUSIC } from './menu';
 
-const FAIRIES = roster as Record<string, FairyDef>;
-const MAX_TYPES = 15; // MAXFTYPES
-const MAX_FAIRIES = 200; // MAXFAIRIES
-const MAX_AMMO = 9999;
 const DEFAULT_AMMO = 50; // filled in when a weapon is ticked with no ammo typed
 const KEY = 'mof.massacre';
-
-type Weather = 'none' | 'rain' | 'snow';
-
-interface Config {
-  ammo: Record<number, number | null>; // weapon 2-9 -> ammo, null = not selected
-  fairies: Array<{ id: string; count: number }>;
-  bg: string;
-  fg: string; // '' = none
-  music: string;
-  weather: Weather;
-  time: number;
-}
 
 // The arsenal checkbox captions from mmode.frm (weapon 1 is always included).
 const ARSENAL: Array<[number, string]> = [
@@ -50,10 +44,6 @@ const ARSENAL: Array<[number, string]> = [
   [8, 'Mr. Piano Man'],
   [9, 'Black hole SUN!'],
 ];
-
-function blankConfig(): Config {
-  return { ammo: {}, fairies: [], bg: '', fg: '', music: '', weather: 'none', time: 30 };
-}
 
 function loadConfig(): Config {
   try {
@@ -87,13 +77,23 @@ export class MassacreScene implements Scene {
   private engine!: Engine;
   private config = loadConfig();
   private message = '';
+  private shareLink = '';
   private starting = false;
 
-  constructor(private player: Profile) {}
+  // `shared`: a setup that arrived in a link, loaded in place of the saved one.
+  constructor(
+    private player: Profile,
+    private shared: Config | null = null,
+  ) {}
 
   enter(engine: Engine): void {
     this.engine = engine;
     audio.play(MENU_MUSIC, { channel: 'music', loop: true });
+    if (this.shared) {
+      this.config = this.shared;
+      saveConfig(this.config);
+      this.message = "A friend's massacre is loaded and ready. Hit GO when you're ready!";
+    }
     this.build();
   }
 
@@ -142,13 +142,14 @@ export class MassacreScene implements Scene {
         at: at(216, 452, 200, 80),
         style: { font: 'bold 16px Arial', color: GREEN },
       }),
-      this.numberBox(c.time, at(248, 536, 105, 25), 999, (v) => this.change((c) => (c.time = v ?? 0))),
+      this.numberBox(c.time, at(248, 536, 105, 25), MAX_TIME, (v) => this.change((c) => (c.time = v ?? 0))),
       h('button', { text: 'GO', at: at(232, 568, 121, 76), style: { font: '48px Arial' }, onClick: () => void this.go() }),
       h('button', { text: 'Random Massacre', at: at(232, 652, 121, 25), onClick: () => this.random() }),
       h('button', { text: 'Reset All', at: at(472, 584, 105, 21), onClick: () => this.change((c) => Object.assign(c, blankConfig())) }),
       h('button', { text: 'QUIT', at: at(400, 662, 201, 21), onClick: () => this.engine.setScene(new MenuScene()) }),
+      h('button', { text: 'Share this massacre', at: at(632, 646, 185, 26), onClick: () => void this.share() }),
     ];
-    if (this.message) els.push(this.popup(this.message));
+    if (this.message) els.push(this.popup(this.message, this.shareLink));
     this.engine.overlay.replaceChildren(...els);
   }
 
@@ -328,23 +329,45 @@ export class MassacreScene implements Scene {
     );
   }
 
-  private toast(message: string): void {
+  private toast(message: string, link = ''): void {
     this.message = message;
+    this.shareLink = link;
     this.build();
   }
 
-  private popup(message: string): HTMLElement {
+  // Share (new): the setup as a link, copied to the clipboard if the browser allows.
+  private async share(): Promise<void> {
+    if (!this.config.fairies.length) return this.toast('Add some fairies first, then share your massacre.');
+    const link = setupLink(this.config);
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(link);
+      copied = true;
+    } catch {
+      // no clipboard access (e.g. plain http): the link is shown to copy by hand
+    }
+    this.toast(copied ? 'Link copied! Send it to a friend to let them play this massacre.' : 'Copy this link and send it to a friend:', link);
+  }
+
+  private popup(message: string, link = ''): HTMLElement {
+    const height = link ? 128 : 96;
+    const linkBox = link
+      ? h('input', { type: 'text', value: link, readonly: true, at: [12, 52, 317, 26], style: { font: '12px Arial' } })
+      : null;
+    linkBox?.addEventListener('focus', () => linkBox.select());
     return h('div', {
       class: 'panel',
-      at: [336, 300, 345, 96],
+      at: [336, 300, 345, height],
       style: { background: '#d4d0c8', border: '2px outset #fff', boxSizing: 'border-box', zIndex: '10' },
     }, [
       h('div', { text: message, at: [12, 8, 317, 44], style: { font: '13px Tahoma, Arial, sans-serif' } }),
+      linkBox,
       h('button', {
         text: 'Ok',
-        at: [126, 58, 89, 25],
+        at: [126, height - 38, 89, 25],
         onClick: () => {
           this.message = '';
+          this.shareLink = '';
           this.build();
         },
       }),

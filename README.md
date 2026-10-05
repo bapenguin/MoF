@@ -50,6 +50,14 @@ npm run assets   # BMP -> PNG/WebP (black keyed to transparent), WAV -> MP3, wri
 npm run data     # legacy/*.txt scenarios -> data/*.json
 ```
 
+## Play online
+
+**https://bapenguin.github.io/MoF/**, deployed from `main` by GitHub Actions. It can be installed
+as an app (the Install button, or *Add to Home Screen* on iPhone/iPad) and then plays offline.
+
+Massacre setups can be shared: build one in Massacre Mode and press **Share this massacre**
+for a link like `…/#massacre?f=white:25,scruffy:2&bg=storm&wx=rain&t=60`.
+
 ## Deploying
 
 The game is a plain static site, so any web server works (Apache, nginx, IIS, shared
@@ -63,9 +71,12 @@ Upload the **contents** of `dist/` to any folder on the server. Paths are relati
 it works at the site root or in a subfolder like `https://example.com/games/mof/`.
 It must be served over `http(s)://`; opening `dist/index.html` straight from disk won't work.
 
-Every push to `main` also builds the site on GitHub (`.github/workflows/build.yml`):
-open the workflow run under the **Actions** tab and download the `mof-web` artifact,
-which is the same `dist/` folder as a zip.
+Every push to `main` builds the site on GitHub (`.github/workflows/build.yml`) and
+publishes it to GitHub Pages. Each workflow run also has a `mof-web` artifact to
+download: the same `dist/` folder as a zip, for your own server.
+
+Offline play and installing need **HTTPS** (browsers only allow service workers on
+secure sites); over plain `http://` the game still works, just without those.
 
 Player profiles, settings and Massacre setups are saved in each visitor's browser
 (`localStorage`), so nothing needs to be stored on the server.

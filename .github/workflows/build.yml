@@ -1,7 +1,8 @@
-name: Build
+name: Build and deploy
 
-# Builds the game on every push and attaches the ready-to-upload site as a
-# downloadable artifact ("mof-web") on the workflow run page.
+# Builds the game on every push. On main it also publishes to GitHub Pages
+# (https://bapenguin.github.io/MoF/). Every run attaches the ready-to-upload
+# site as a downloadable artifact ("mof-web") for hosting anywhere else.
 
 on:
   push:
@@ -11,6 +12,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -30,3 +37,18 @@ jobs:
           name: mof-web
           path: dist
           retention-days: 30
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -34,6 +34,7 @@ import { bg, h, menuLink } from '../ui/dom';
 import { LoadingScene } from './loading';
 import { PlayScene } from './play';
 import { MassacreScene } from './massacre';
+import type { MassacreSetup } from '../game/share';
 
 export const MENU_MUSIC = 'music2';
 
@@ -62,18 +63,23 @@ export class MenuScene implements Scene {
   private levelScenario: ScenarioDef | null = null;
   private selectedLevel = '';
 
-  // After an adventure, come back to that scenario's level list rather than
-  // the main menu.
-  constructor(private returnTo?: { playerName: string; scenarioId: string }) {}
+  // returnTo: after an adventure, come back to that scenario's level list
+  //           rather than the main menu.
+  // shared:   a Massacre setup that arrived in a link; log in, then it opens
+  //           in the Massacre builder.
+  constructor(private opts: { returnTo?: { playerName: string; scenarioId: string }; shared?: MassacreSetup | null } = {}) {}
 
   enter(engine: Engine): void {
     this.engine = engine;
     audio.play(MENU_MUSIC, { channel: 'music', loop: true });
-    const back = this.returnTo && getProfile(this.returnTo.playerName);
+    const back = this.opts.returnTo && getProfile(this.opts.returnTo.playerName);
     if (back) {
       this.player = back;
       this.mode = 'adventure';
-      void this.openLevels(this.returnTo!.scenarioId);
+      void this.openLevels(this.opts.returnTo!.scenarioId);
+    } else if (this.opts.shared) {
+      this.mode = 'massacre';
+      this.show('login', "A friend sent you a massacre! Pick your player (or make a new one) and press Go! to play it.");
     } else {
       this.show('main');
     }
@@ -212,7 +218,7 @@ export class MenuScene implements Scene {
     this.player = p;
     setLastPlayer(p.name);
     if (this.mode === 'massacre') {
-      this.engine.setScene(new MassacreScene(p));
+      this.engine.setScene(new MassacreScene(p, this.opts.shared ?? null));
       return;
     }
     this.show('scenarios');
@@ -357,7 +363,7 @@ export class MenuScene implements Scene {
           scenario,
           GameMode.Adventure,
           this.player,
-          () => engine.setScene(new MenuScene({ playerName: this.player!.name, scenarioId: scenario.id })),
+          () => engine.setScene(new MenuScene({ returnTo: { playerName: this.player!.name, scenarioId: scenario.id } })),
           options,
         ),
       ),

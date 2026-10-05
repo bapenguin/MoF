@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>Massacre of the Fairies</title>
     <link rel="icon" href="/favicon.ico" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="theme-color" content="#003300" />
     <style>
       html,
       body {
@@ -42,6 +45,23 @@
       }
       #fullscreen:hover {
         opacity: 1;
+      }
+      #install {
+        position: fixed;
+        right: 46px;
+        bottom: 6px;
+        z-index: 5;
+        height: 34px;
+        padding: 0 12px;
+        font: bold 13px Arial, sans-serif;
+        color: #cfc;
+        background: rgba(0, 40, 0, 0.75);
+        border: 1px solid rgba(160, 255, 160, 0.5);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #install[hidden] {
+        display: none;
       }
       /* The game is 4:3 landscape; on a phone held upright it would be tiny. */
       #rotate {
@@ -153,6 +173,7 @@
     <canvas id="game" width="1024" height="768"></canvas>
     <div id="ui"></div>
     <button id="fullscreen" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
+    <button id="install" title="Install the game on this device" hidden>Install</button>
     <div id="rotate"><span>⟳</span>Turn your phone sideways to massacre fairies</div>
     <script type="module" src="/src/main.ts"></script>
   </body>

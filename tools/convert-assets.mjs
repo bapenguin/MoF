@@ -113,6 +113,38 @@ async function extractFrxImages() {
   }
 }
 
+// App icons for the installable web app: the crosshair-on-a-fairy from the
+// splash screen. "Maskable" icons get a looser crop because phones trim them
+// to circles or rounded squares.
+async function makeIcons() {
+  const src = path.join(legacy, 'mofsplash.bmp');
+  if (!fs.existsSync(src)) return;
+  const outDir = path.join(root, 'public', 'icons');
+  fs.mkdirSync(outDir, { recursive: true });
+  const img = decodeBmp(fs.readFileSync(src));
+  const raw = () => sharp(img.data, { raw: { width: img.width, height: img.height, channels: 4 } });
+  const centre = { x: 385, y: 170 }; // the crosshair
+  const jobs = [
+    ['icon-192.png', 192, 210],
+    ['icon-512.png', 512, 210],
+    ['icon-maskable-512.png', 512, 300],
+    ['apple-touch-icon.png', 180, 230],
+  ];
+  for (const [name, size, crop] of jobs) {
+    const dest = path.join(outDir, name);
+    if (upToDate(src, dest)) {
+      skipped++;
+      continue;
+    }
+    await raw()
+      .extract({ left: centre.x - crop / 2, top: Math.max(0, centre.y - crop / 2), width: crop, height: crop })
+      .resize(size, size, { kernel: 'lanczos3' })
+      .png()
+      .toFile(dest);
+    converted++;
+  }
+}
+
 function runFfmpeg(args) {
   return new Promise((resolve, reject) => {
     const p = spawn('ffmpeg', args, { stdio: ['ignore', 'ignore', 'pipe'] });
@@ -157,6 +189,7 @@ await convertImages('bg', path.join(legacy, 'BG'), ['.bmp'], 'webp', false);
 // (mofsplash.png duplicates mofsplash.bmp, so .png is left out to avoid a key clash.)
 await convertImages('ui', legacy, ['.bmp', '.jpg'], 'webp', false);
 await extractFrxImages();
+await makeIcons();
 await convertSounds();
 // The in-game cursor (frmmain.frm MouseIcon); browsers accept .cur directly.
 fs.copyFileSync(path.join(legacy, 'cursor.cur'), path.join(outRoot, 'ui', 'cursor.cur'));
