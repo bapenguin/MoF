@@ -37,6 +37,7 @@ const COMMON_SOUNDS = [
   'die',
   'ocean',
   'rain',
+  'thunder',
   'arm',
   'boom',
   'bus',
@@ -70,6 +71,7 @@ export function scenarioTasks(scenario: ScenarioDef): Task[] {
     ...[...sprites].map(([key, [fx, fy]]) => () =>
       loadSheet(key, fx, fy).then((s) => (shootable.has(key) ? s.warmMask() : s)),
     ),
+    () => loadSheet('wood', 1, 1, 'ui'), // victory card background
     ...[...backgrounds].map((key) => () => loadSheet(key, 1, 1, 'bg')),
     ...[...foregrounds].map((key) => () => loadSheet(key, 1, 1, 'fg')),
     ...[...sounds].map((key) => () => audio.load(key)),

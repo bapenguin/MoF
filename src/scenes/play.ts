@@ -11,6 +11,7 @@ import { GameMode, SCREENTOP, Session, World } from '../game/world';
 import { WEAPONS, isRapid } from '../game/weapons';
 import { saveProfile, type Profile } from '../game/profiles';
 import { h } from '../ui/dom';
+import { drawVictoryCard } from '../game/victory';
 
 // The HUD bar's weapon box: tapping it switches weapon (keys 1-9 do too).
 const WEAPON_BOX = { left: 360, right: 460 };
@@ -274,7 +275,7 @@ export class PlayScene implements Scene {
     if (import.meta.env.DEV) drawText(ctx, 0, 0, `${str(this.engine.fps)} FPS`);
 
     if (this.phase === 'summary') this.renderSummary(ctx);
-    else if (this.phase === 'victory') this.centered(ctx, 'win2');
+    else if (this.phase === 'victory') drawVictoryCard(ctx, this.scenario, (SCREEN_W - 400) / 2, (SCREEN_H - 400) / 2);
     else if (this.phase === 'gameover') this.centered(ctx, s.mode === GameMode.Adventure ? 'endgame' : 'win');
   }
 
