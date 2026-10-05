@@ -2,22 +2,34 @@
 //
 // Sheets are grids of equal-size frames: framesX across, framesY down. Fairies are
 // 8x1 strips; "innocent" walkers/flyers are 8x2, row 0 facing right, row 1 facing left.
+//
+// On high-DPI screens a sheet may also have a 2x "HD" image (public/assets/hd/). It's
+// only used for drawing: sizes, positions and hit masks all come from the original
+// 1x image, so gameplay is identical either way.
 
-import { loadImage, type ImageGroup } from './assets';
+import { loadHdImage, loadImage, type ImageGroup } from './assets';
 
 export class SpriteSheet {
   readonly frameW: number;
   readonly frameH: number;
   private mask: Uint8Array | null = null;
+  // The image frames are drawn from, and its scale relative to `image`.
+  private readonly src: HTMLImageElement;
+  private readonly srcScale: number;
 
   constructor(
     readonly key: string,
     readonly image: HTMLImageElement,
     readonly framesX: number,
     readonly framesY: number,
+    hd: HTMLImageElement | null = null,
   ) {
     this.frameW = Math.floor(image.width / framesX);
     this.frameH = Math.floor(image.height / framesY);
+    // Stale HD art (not exactly 2x the current original) is ignored rather than misdrawn.
+    const usable = hd && hd.width === image.width * 2 && hd.height === image.height * 2;
+    this.src = usable ? hd : image;
+    this.srcScale = usable ? 2 : 1;
   }
 
   hasFrame(fx: number, fy = 0): boolean {
@@ -26,10 +38,22 @@ export class SpriteSheet {
 
   // Like putpic: an out-of-range frame draws nothing. Canvas handles edge clipping.
   draw(ctx: CanvasRenderingContext2D, x: number, y: number, fx = 0, fy = 0): void {
+    this.drawScaled(ctx, Math.round(x), Math.round(y), this.frameW, this.frameH, fx, fy);
+  }
+
+  // A frame stretched to (w, h) logical pixels.
+  drawScaled(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fx = 0, fy = 0): void {
     if (!this.hasFrame(fx, fy)) return;
-    const w = this.frameW;
-    const h = this.frameH;
-    ctx.drawImage(this.image, fx * w, fy * h, w, h, Math.round(x), Math.round(y), w, h);
+    const s = this.srcScale;
+    const fw = this.frameW * s;
+    const fh = this.frameH * s;
+    ctx.drawImage(this.src, fx * fw, fy * fh, fw, fh, x, y, w, h);
+  }
+
+  // A region of the sheet, in 1x pixels, stretched to (dx, dy, dw, dh).
+  drawRegion(ctx: CanvasRenderingContext2D, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void {
+    const s = this.srcScale;
+    ctx.drawImage(this.src, sx * s, sy * s, sw * s, sh * s, dx, dy, dw, dh);
   }
 
   // Per-pixel hit test at (lx, ly) relative to the frame's top-left: true on any
@@ -77,8 +101,8 @@ export function loadSheet(key: string, framesX = 1, framesY = 1, group: ImageGro
   const id = `${group}/${key}`;
   let p = sheets.get(id);
   if (!p) {
-    p = loadImage(group, key).then((img) => {
-      const s = new SpriteSheet(key, img, framesX, framesY);
+    p = Promise.all([loadImage(group, key), loadHdImage(group, key)]).then(([img, hd]) => {
+      const s = new SpriteSheet(key, img, framesX, framesY, hd);
       ready.set(id, s);
       return s;
     });

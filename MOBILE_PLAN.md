@@ -3,10 +3,20 @@
 Goal: make Massacre of the Fairies play properly on phones and tablets (touch-first UI, crisp
 high-res art) without forking the game.
 
-**Status (2026-10-05):** M2 started. Tested Lanczos vs Real-ESRGAN `x4plus` vs `x4plus-anime`;
-**chose ESRGAN x4plus** for sprites, foregrounds and backgrounds. `npm run upscale`
-(`tools/upscale-assets.mjs`) produces 107 images (the 69 sprite sheets the game uses, 7 foregrounds, 31 backgrounds) in ~70 s on an RTX 4080, staged in `upscaled/` for review via `/tools/upscale-review.html`.
-Not yet used by the game: that needs M1 (scale-aware `SpriteSheet`).
+**Status (2026-10-05):** M1 done, M2 mostly done (baked-text art still to redraw).
+
+- **M2 art:** tested Lanczos vs Real-ESRGAN `x4plus` vs `x4plus-anime` and **chose ESRGAN x4plus**
+  for sprites, foregrounds and backgrounds. `npm run upscale` (`tools/upscale-assets.mjs`) builds
+  107 images (the 69 sprite sheets the game uses, 7 foregrounds, 31 backgrounds; ~11.7 MB) into
+  `public/assets/hd/` in ~70 s on an RTX 4080; review at `/tools/upscale-review.html`. Defringe is
+  conservative after review: exact-black key, only the outer 1px fades, render pinholes filled,
+  UI art key-only. Still muddy: tiny baked text (e.g. `howieammo`), to be redrawn (M3/M4).
+- **M1 rendering:** the canvas backing store follows device pixels (up to 2x the logical
+  1024x768; `screen.ts` `renderScale`, applied as a transform by `Engine`). `SpriteSheet` draws
+  from the HD image when there is one but sizes, positions and hit masks still come from the 1x
+  art, so gameplay is unchanged (bot-tested: same hit behaviour with `?hd=1` and `?hd=0`). HD loads
+  only where it helps (`useHd` in `assets.ts`: fullscreen scale × DPR > 1.2; `?hd=1`/`?hd=0`
+  override). The service worker leaves `assets/hd/` out of the precache and caches it on use.
 
 ## 1. Where the current build falls short on a phone
 

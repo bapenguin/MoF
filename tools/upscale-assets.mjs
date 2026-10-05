@@ -1,9 +1,9 @@
-// Makes 2x versions of the game art for high-DPI (phone) screens. Staged in upscaled/
-// for review; nothing in the game uses them yet (see MOBILE_PLAN.md, M1/M2).
+// Makes the 2x ("HD") art the game draws on high-DPI screens (phones, big monitors),
+// and public/assets/hd/manifest.json. Review it at /tools/upscale-review.html.
 //
-//   sprites  legacy/Sprites/*.bmp -> upscaled/sprites/<key>.webp
-//   fg       legacy/fg/*.bmp      -> upscaled/fg/<key>.webp
-//   bg       legacy/BG/*.bmp      -> upscaled/bg/<key>.webp
+//   sprites  legacy/Sprites/*.bmp -> public/assets/hd/sprites/<key>.webp
+//   fg       legacy/fg/*.bmp      -> public/assets/hd/fg/<key>.webp
+//   bg       legacy/BG/*.bmp      -> public/assets/hd/bg/<key>.webp
 //
 // Keyed art is defringed first: the originals were rendered against black and keyed on
 // exact #000, which leaves a dark halo. Edge pixels darker than the shape's interior get
@@ -26,7 +26,7 @@ import { assetKey } from './lib/names.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const legacy = path.join(root, 'legacy');
-const outRoot = path.join(root, 'upscaled');
+const outRoot = path.join(root, 'public', 'assets', 'hd');
 const exe = process.env.ESRGAN || path.join(root, 'tools', 'bin', 'realesrgan', 'realesrgan-ncnn-vulkan.exe');
 const force = process.argv.includes('--force');
 const MODEL = 'realesrgan-x4plus';

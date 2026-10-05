@@ -27,20 +27,22 @@ export function drawVictoryCard(ctx: CanvasRenderingContext2D, scenario: Scenari
     card = buildCard(scenario);
     cache.set(scenario.id, card);
   }
-  ctx.drawImage(card, x, y);
+  ctx.drawImage(card, x, y, W, H);
 }
 
+// Built at 2x so it stays sharp on high-DPI screens (drawn back at W x H logical).
 function buildCard(scenario: ScenarioDef): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = W * 2;
+  canvas.height = H * 2;
   const c = canvas.getContext('2d')!;
+  c.scale(2, 2);
   const index = scenarioList.findIndex((s) => s.id === scenario.id);
   const next = scenarioList[index + 1];
   const level = levelOrder(scenario).at(-1)!;
 
   // Wood, darkened to the original card's tone, with a bevelled edge.
-  c.drawImage(getSheet('wood', 'ui').image, 120, 200, W, H, 0, 0, W, H);
+  getSheet('wood', 'ui').drawRegion(c, 120, 200, W, H, 0, 0, W, H);
   c.fillStyle = 'rgba(45,20,0,0.38)';
   c.fillRect(0, 0, W, H);
   c.strokeStyle = 'rgba(0,0,0,0.6)';
@@ -66,7 +68,7 @@ function buildCard(scenario: ScenarioDef): HTMLCanvasElement {
   c.shadowBlur = 10;
   c.shadowOffsetX = 6;
   c.shadowOffsetY = 6;
-  c.drawImage(getSheet(level.bg, 'bg').image, px, py, pw, ph);
+  getSheet(level.bg, 'bg').drawScaled(c, px, py, pw, ph);
   c.restore();
 
   // A few casualties from that level, lying where they fell.
@@ -86,7 +88,7 @@ function buildCard(scenario: ScenarioDef): HTMLCanvasElement {
     const fx = px + 18 + i * ((pw - 36 - w) / 3);
     // Death animations disintegrate; an early frame is bloody but still recognisable.
     const frame = Math.floor(sheet.framesX * 0.4);
-    c.drawImage(sheet.image, frame * sheet.frameW, 0, sheet.frameW, sheet.frameH, fx, py + ph - h - 6 - (i % 2) * 14, w, h);
+    sheet.drawScaled(c, fx, py + ph - h - 6 - (i % 2) * 14, w, h, frame);
   }
   c.restore();
 

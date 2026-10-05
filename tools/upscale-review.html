@@ -57,7 +57,7 @@ input[type=search]{font:inherit;font-size:13px;padding:5px 8px;border:1px solid 
 // Score pop-ups and HUD/card art have text baked in; the mobile plan redraws these instead.
 const BAKED_TEXT = new Set(['0', '25', '50', '100', '200', '500', '1000', 'topbar', 'topbar2', 'roundinfo', 'endgame', 'win', 'win2', 'banner', 'mofhof', 'mofhof2', 'usstats', 'logospl', 'pandptitle', 'pplogo', 'fairy-splash-screen']);
 const shipped = await (await fetch('/assets/manifest.json')).json();
-const up = await (await fetch('/upscaled/manifest.json')).json();
+const up = await (await fetch('/assets/hd/manifest.json')).json();
 const state = { group: 'sprites', bg: 'light', zoom: 2, playing: true, frame: 0, filter: '' };
 let flags = new Set();
 try { flags = new Set(JSON.parse(localStorage.getItem('upscale-flags') || '[]')); } catch {}
@@ -108,7 +108,7 @@ function render() {
     }
     const pair = document.createElement('div');
     pair.className = 'pair';
-    for (const [label, src, scale] of [['Shipped', '/assets/' + s.file, 1], ['2× x4plus', '/upscaled/' + u.file, 2]]) {
+    for (const [label, src, scale] of [['Shipped', '/assets/' + s.file, 1], ['2× x4plus', '/assets/hd/' + u.file, 2]]) {
       const cell = document.createElement('div');
       cell.className = 'cell';
       const stage = document.createElement('div');

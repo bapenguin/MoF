@@ -1,0 +1,847 @@
+{
+  "sprites": {
+    "0": {
+      "file": "sprites/0.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "25": {
+      "file": "sprites/25.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "50": {
+      "file": "sprites/50.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "100": {
+      "file": "sprites/100.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "200": {
+      "file": "sprites/200.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "500": {
+      "file": "sprites/500.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "1000": {
+      "file": "sprites/1000.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "bhole": {
+      "file": "sprites/bhole.webp",
+      "w": 1200,
+      "h": 300,
+      "frames": [
+        4,
+        1
+      ]
+    },
+    "bird": {
+      "file": "sprites/bird.webp",
+      "w": 800,
+      "h": 200,
+      "frames": [
+        8,
+        2
+      ]
+    },
+    "boydog": {
+      "file": "sprites/boydog.webp",
+      "w": 2048,
+      "h": 512,
+      "frames": [
+        8,
+        2
+      ]
+    },
+    "boydogd1": {
+      "file": "sprites/boydogd1.webp",
+      "w": 2048,
+      "h": 512,
+      "frames": [
+        8,
+        2
+      ]
+    },
+    "bozo": {
+      "file": "sprites/bozo.webp",
+      "w": 246,
+      "h": 226,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "busammo": {
+      "file": "sprites/busammo.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "busanim": {
+      "file": "sprites/busanim.webp",
+      "w": 2048,
+      "h": 460,
+      "frames": [
+        2,
+        1
+      ]
+    },
+    "buscon": {
+      "file": "sprites/buscon.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "catdie1": {
+      "file": "sprites/catdie1.webp",
+      "w": 1472,
+      "h": 368,
+      "frames": [
+        8,
+        2
+      ]
+    },
+    "dave": {
+      "file": "sprites/dave.webp",
+      "w": 246,
+      "h": 226,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "endgame": {
+      "file": "sprites/endgame.webp",
+      "w": 720,
+      "h": 560,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fairy1": {
+      "file": "sprites/fairy1.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy10": {
+      "file": "sprites/fairy10.webp",
+      "w": 1040,
+      "h": 130,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy10a": {
+      "file": "sprites/fairy10a.webp",
+      "w": 1040,
+      "h": 130,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy10d1": {
+      "file": "sprites/fairy10d1.webp",
+      "w": 880,
+      "h": 110,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy1d1": {
+      "file": "sprites/fairy1d1.webp",
+      "w": 1200,
+      "h": 150,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy2": {
+      "file": "sprites/fairy2.webp",
+      "w": 800,
+      "h": 100,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy2d1": {
+      "file": "sprites/fairy2d1.webp",
+      "w": 800,
+      "h": 100,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy3": {
+      "file": "sprites/fairy3.webp",
+      "w": 960,
+      "h": 120,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy3a": {
+      "file": "sprites/fairy3a.webp",
+      "w": 960,
+      "h": 120,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy3d1": {
+      "file": "sprites/fairy3d1.webp",
+      "w": 960,
+      "h": 120,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy4": {
+      "file": "sprites/fairy4.webp",
+      "w": 800,
+      "h": 100,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy4d1": {
+      "file": "sprites/fairy4d1.webp",
+      "w": 800,
+      "h": 100,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy6": {
+      "file": "sprites/fairy6.webp",
+      "w": 1888,
+      "h": 236,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy6a": {
+      "file": "sprites/fairy6a.webp",
+      "w": 1888,
+      "h": 236,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy6d1": {
+      "file": "sprites/fairy6d1.webp",
+      "w": 1888,
+      "h": 236,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy7": {
+      "file": "sprites/fairy7.webp",
+      "w": 2048,
+      "h": 256,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy7d1": {
+      "file": "sprites/fairy7d1.webp",
+      "w": 2048,
+      "h": 256,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy8": {
+      "file": "sprites/fairy8.webp",
+      "w": 2048,
+      "h": 256,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy8d1": {
+      "file": "sprites/fairy8d1.webp",
+      "w": 2048,
+      "h": 256,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy9": {
+      "file": "sprites/fairy9.webp",
+      "w": 960,
+      "h": 120,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy9a": {
+      "file": "sprites/fairy9a.webp",
+      "w": 960,
+      "h": 120,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fairy9d1": {
+      "file": "sprites/fairy9d1.webp",
+      "w": 960,
+      "h": 120,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fboss1": {
+      "file": "sprites/fboss1.webp",
+      "w": 1360,
+      "h": 680,
+      "frames": [
+        2,
+        1
+      ]
+    },
+    "fmine": {
+      "file": "sprites/fmine.webp",
+      "w": 900,
+      "h": 112,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "fmine1": {
+      "file": "sprites/fmine1.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fmined1": {
+      "file": "sprites/fmined1.webp",
+      "w": 900,
+      "h": 112,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "gimpcat": {
+      "file": "sprites/gimpcat.webp",
+      "w": 1472,
+      "h": 368,
+      "frames": [
+        8,
+        2
+      ]
+    },
+    "gore": {
+      "file": "sprites/gore.webp",
+      "w": 800,
+      "h": 50,
+      "frames": [
+        16,
+        1
+      ]
+    },
+    "gun": {
+      "file": "sprites/gun.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "holewep": {
+      "file": "sprites/holewep.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "howieammo": {
+      "file": "sprites/howieammo.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "howitz": {
+      "file": "sprites/howitz.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "ion": {
+      "file": "sprites/ion.webp",
+      "w": 1512,
+      "h": 1292,
+      "frames": [
+        9,
+        1
+      ]
+    },
+    "ioncon": {
+      "file": "sprites/ioncon.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "mgun": {
+      "file": "sprites/mgun.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "mineammo": {
+      "file": "sprites/mineammo.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "nick": {
+      "file": "sprites/nick.webp",
+      "w": 246,
+      "h": 226,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "p1d1": {
+      "file": "sprites/p1d1.webp",
+      "w": 1992,
+      "h": 470,
+      "frames": [
+        4,
+        1
+      ]
+    },
+    "piano": {
+      "file": "sprites/piano.webp",
+      "w": 996,
+      "h": 470,
+      "frames": [
+        2,
+        1
+      ]
+    },
+    "pianocon": {
+      "file": "sprites/pianocon.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "roundinfo": {
+      "file": "sprites/roundinfo.webp",
+      "w": 556,
+      "h": 656,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "screech": {
+      "file": "sprites/screech.webp",
+      "w": 248,
+      "h": 248,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "screechowl": {
+      "file": "sprites/screechowl.webp",
+      "w": 1984,
+      "h": 248,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "screechowld1": {
+      "file": "sprites/screechowld1.webp",
+      "w": 1984,
+      "h": 248,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "screechowls": {
+      "file": "sprites/screechowls.webp",
+      "w": 1984,
+      "h": 248,
+      "frames": [
+        8,
+        1
+      ]
+    },
+    "shotammo": {
+      "file": "sprites/shotammo.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "shotgun": {
+      "file": "sprites/shotgun.webp",
+      "w": 100,
+      "h": 100,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "splat": {
+      "file": "sprites/splat.webp",
+      "w": 400,
+      "h": 100,
+      "frames": [
+        4,
+        1
+      ]
+    },
+    "topbar": {
+      "file": "sprites/topbar.webp",
+      "w": 2048,
+      "h": 166,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "win": {
+      "file": "sprites/win.webp",
+      "w": 720,
+      "h": 560,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "win2": {
+      "file": "sprites/win2.webp",
+      "w": 800,
+      "h": 800,
+      "frames": [
+        1,
+        1
+      ]
+    }
+  },
+  "fg": {
+    "fore1": {
+      "file": "fg/fore1.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fore2": {
+      "file": "fg/fore2.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fore3": {
+      "file": "fg/fore3.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fore4": {
+      "file": "fg/fore4.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fore5": {
+      "file": "fg/fore5.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fore6": {
+      "file": "fg/fore6.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    },
+    "fore7": {
+      "file": "fg/fore7.webp",
+      "w": 2048,
+      "h": 300,
+      "frames": [
+        1,
+        1
+      ]
+    }
+  },
+  "bg": {
+    "airfield": {
+      "file": "bg/airfield.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "airfield2": {
+      "file": "bg/airfield2.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "beach": {
+      "file": "bg/beach.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "bforrest": {
+      "file": "bg/bforrest.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "castle": {
+      "file": "bg/castle.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "caves": {
+      "file": "bg/caves.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "city": {
+      "file": "bg/city.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "city-number-2": {
+      "file": "bg/city-number-2.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "citygates": {
+      "file": "bg/citygates.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "desert": {
+      "file": "bg/desert.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "desert2": {
+      "file": "bg/desert2.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "desertplain": {
+      "file": "bg/desertplain.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "fairycastle": {
+      "file": "bg/fairycastle.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "fentrance": {
+      "file": "bg/fentrance.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "fields": {
+      "file": "bg/fields.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "forrest2": {
+      "file": "bg/forrest2.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "frwfall": {
+      "file": "bg/frwfall.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "gourge": {
+      "file": "bg/gourge.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "icave": {
+      "file": "bg/icave.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "iceberg": {
+      "file": "bg/iceberg.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "nidesert": {
+      "file": "bg/nidesert.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "pathways": {
+      "file": "bg/pathways.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "pond": {
+      "file": "bg/pond.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "snowplain": {
+      "file": "bg/snowplain.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "snowstairs": {
+      "file": "bg/snowstairs.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "stairway": {
+      "file": "bg/stairway.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "storm": {
+      "file": "bg/storm.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "temple": {
+      "file": "bg/temple.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "valls": {
+      "file": "bg/valls.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "volcanic": {
+      "file": "bg/volcanic.webp",
+      "w": 2048,
+      "h": 1536
+    },
+    "wfall": {
+      "file": "bg/wfall.webp",
+      "w": 2048,
+      "h": 1536
+    }
+  }
+}

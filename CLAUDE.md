@@ -24,8 +24,9 @@ art/sound, regenerating icons) needs the raw files: copy `legacy/BG`, `legacy/fg
 
 `npm run upscale` (2x art for phones, see `MOBILE_PLAN.md`) also needs the raw files, plus the
 Real-ESRGAN Windows build (`realesrgan-ncnn-vulkan-20220424-windows.zip` from the
-xinntao/Real-ESRGAN GitHub releases) unzipped to `tools/bin/realesrgan/` (gitignored). Output is
-staged in `upscaled/` (gitignored); review it at `/tools/upscale-review.html` on the dev server.
+xinntao/Real-ESRGAN GitHub releases) unzipped to `tools/bin/realesrgan/` (gitignored). Output goes
+to `public/assets/hd/` (committed, like the 1x art); review it at `/tools/upscale-review.html` on
+the dev server.
 
 ## Layout
 
@@ -37,7 +38,7 @@ staged in `upscaled/` (gitignored); review it at `/tools/upscale-review.html` on
 | `src/scenes/` | `menu.ts` (main menu, login, scenario + level select, options, stats, Hall of Fame, quit), `play.ts` (level flow, HUD, pause, summary/stars, game over/retry), `massacre.ts` (Massacre builder), `loading.ts` |
 | `src/ui/dom.ts` | `h()` helper for the HTML menu overlay (`#ui`), laid out in logical 1024×768 px |
 | `data/` | Generated JSON (scenarios, Massacre roster, `renames.json`). **Don't hand-edit**: change `tools/convert-data.mjs` and run `npm run data` |
-| `tools/` | `upscale-assets.mjs` (defringe + Real-ESRGAN x4plus → 2x art in `upscaled/`) + `upscale-review.html`, `convert-assets.mjs` (BMP→PNG/WebP with black colour key, WAV→MP3, menu art out of `.frx` files, icons), `convert-data.mjs` (`.txt`→JSON + `RENAMES` + `PATCHES`), `sw.template.js` (service worker) |
+| `tools/` | `upscale-assets.mjs` (defringe + Real-ESRGAN x4plus → 2x art in `public/assets/hd/`) + `upscale-review.html`, `convert-assets.mjs` (BMP→PNG/WebP with black colour key, WAV→MP3, menu art out of `.frx` files, icons), `convert-data.mjs` (`.txt`→JSON + `RENAMES` + `PATCHES`), `sw.template.js` (service worker) |
 | `public/` | Committed converted assets, icons, `manifest.webmanifest`, favicon |
 | `legacy/` | Original VB6 source and data, for reference. Leave unchanged |
 | `vite.config.ts` | `base: './'` (works in any folder) + plugin that generates `dist/sw.js` with the precache list |
@@ -72,6 +73,10 @@ staged in `upscaled/` (gitignored); review it at `/tools/upscale-review.html` on
 ## Testing notes (for Claude)
 
 - Verify changes in the browser, not just `tsc`: `npm run dev`, then drive the page.
+- HD art: `?hd=1` / `?hd=0` force the 2x art on or off. The canvas only renders above 1x
+  when the window is bigger than 1024x768 in device pixels; the preview pane is small at DPR 1,
+  so emulate a big viewport (e.g. 2048x1536) to test it. Screenshots of an emulated viewport
+  bigger than the pane come out wrong: read pixels or export `canvas.toBlob()` instead.
 - Dev-only hooks: `window.__play` (current `PlayScene`), `window.__engine`, `window.__audio`.
   Prefer these over `import('/src/...')` in page scripts: after an edit Vite serves a fresh
   module copy, so a dynamic import can get a different instance from the running game.

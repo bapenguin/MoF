@@ -869,7 +869,7 @@ export class World {
     if (shaking) {
       ctx.translate(sx, sy);
       // Overscan so a shake never reveals the edge of the background.
-      ctx.drawImage(this.bg.image, -12, -12, SCREEN_W + 24, SCREEN_H + 24);
+      this.bg.drawScaled(ctx, -12, -12, SCREEN_W + 24, SCREEN_H + 24);
     } else {
       this.bg.draw(ctx, 0, 0);
     }

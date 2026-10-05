@@ -31,7 +31,9 @@ function serviceWorker(): Plugin {
         }
       };
       walk(outDir);
-      const precache = ['./', ...files.filter((f) => f !== 'sw.js' && f !== 'index.html').sort()];
+      // The 2x art (assets/hd/) isn't precached: only high-DPI screens use it, so the
+      // service worker caches it as it's fetched instead.
+      const precache = ['./', ...files.filter((f) => f !== 'sw.js' && f !== 'index.html' && !f.startsWith('assets/hd/')).sort()];
       const hash = createHash('sha256');
       for (const f of files.sort()) hash.update(f).update(fs.readFileSync(path.join(outDir, f)));
       const template = fs.readFileSync(path.resolve(__dirname, 'tools/sw.template.js'), 'utf8');
