@@ -20,3 +20,6 @@ legacy/**/*.wav
 legacy/**/*.WAV
 legacy/**/*.avi
 legacy/**/*.psp
+
+# Upload bundle made from dist/
+mof-web.zip
