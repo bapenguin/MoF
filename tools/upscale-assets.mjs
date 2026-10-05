@@ -43,6 +43,10 @@ const COMMON = {
 
 // Flat UI art, logos, HUD icons and faces: drawn, not rendered against black, so their
 // dark edges are deliberate. These only get the exact-black key.
+// Art with small baked-in text that upscaling smears: its HD version is drawn by
+// tools/redraw-text-art.mjs (npm run redraw) instead, so it's never overwritten here.
+const REDRAWN = new Set(['0', '25', '50', '100', '200', '500', '1000', 'howieammo']);
+
 const KEY_ONLY = new Set([
   'topbar', 'topbar2', 'roundinfo', 'endgame', 'win', 'win2', 'banner', 'mofhof', 'mofhof2', 'usstats',
   'logospl', 'pplogo', 'pandp', 'pandptitle', 'fairy-splash-screen',
@@ -332,7 +336,7 @@ for (const [group, dir] of [['sprites', 'Sprites'], ['fg', 'fg']]) {
     const fh = Math.floor(img.height / fy);
     manifest[group][key] = { file: `${group}/${key}.webp`, w: img.width * 2, h: img.height * 2, frames: [fx, fy] };
     if (fw * fx !== img.width || fh * fy !== img.height) console.warn(`${key}: ${img.width}x${img.height} doesn't divide into ${fx}x${fy} frames`);
-    if (upToDate(src, dest)) {
+    if (REDRAWN.has(key) || upToDate(src, dest)) {
       skipped++;
       continue;
     }

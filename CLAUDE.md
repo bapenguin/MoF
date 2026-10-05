@@ -26,7 +26,9 @@ art/sound, regenerating icons) needs the raw files: copy `legacy/BG`, `legacy/fg
 Real-ESRGAN Windows build (`realesrgan-ncnn-vulkan-20220424-windows.zip` from the
 xinntao/Real-ESRGAN GitHub releases) unzipped to `tools/bin/realesrgan/` (gitignored). Output goes
 to `public/assets/hd/` (committed, like the 1x art); review it at `/tools/upscale-review.html` on
-the dev server.
+the dev server. Then run `npm run redraw` (no extra tools needed): it draws the HD score pop-ups
+and the "Howie Ammo" crate as SVG, since their small text smears when upscaled (`upscale`
+skips those keys).
 
 ## Layout
 
@@ -38,7 +40,7 @@ the dev server.
 | `src/scenes/` | `menu.ts` (main menu, login, scenario + level select, options, stats, Hall of Fame, quit), `play.ts` (level flow, HUD, pause, summary/stars, game over/retry), `massacre.ts` (Massacre builder), `loading.ts` |
 | `src/ui/dom.ts` | `h()` helper for the HTML menu overlay (`#ui`), laid out in logical 1024×768 px |
 | `data/` | Generated JSON (scenarios, Massacre roster, `renames.json`). **Don't hand-edit**: change `tools/convert-data.mjs` and run `npm run data` |
-| `tools/` | `upscale-assets.mjs` (defringe + Real-ESRGAN x4plus → 2x art in `public/assets/hd/`) + `upscale-review.html`, `convert-assets.mjs` (BMP→PNG/WebP with black colour key, WAV→MP3, menu art out of `.frx` files, icons), `convert-data.mjs` (`.txt`→JSON + `RENAMES` + `PATCHES`), `sw.template.js` (service worker) |
+| `tools/` | `upscale-assets.mjs` (defringe + Real-ESRGAN x4plus → 2x art in `public/assets/hd/`) + `upscale-review.html`, `redraw-text-art.mjs` (SVG redraws of the HD art with small text), `convert-assets.mjs` (BMP→PNG/WebP with black colour key, WAV→MP3, menu art out of `.frx` files, icons), `convert-data.mjs` (`.txt`→JSON + `RENAMES` + `PATCHES`), `sw.template.js` (service worker) |
 | `public/` | Committed converted assets, icons, `manifest.webmanifest`, favicon |
 | `legacy/` | Original VB6 source and data, for reference. Leave unchanged |
 | `vite.config.ts` | `base: './'` (works in any folder) + plugin that generates `dist/sw.js` with the precache list |

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "assets": "node tools/convert-assets.mjs",
     "data": "node tools/convert-data.mjs",
-    "upscale": "node tools/upscale-assets.mjs"
+    "upscale": "node tools/upscale-assets.mjs",
+    "redraw": "node tools/redraw-text-art.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.0",

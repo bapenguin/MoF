@@ -3,7 +3,7 @@
 Goal: make Massacre of the Fairies play properly on phones and tablets (touch-first UI, crisp
 high-res art) without forking the game.
 
-**Status (2026-10-05):** M1, M3 and M4 done, M2 mostly done (baked-text art still to redraw). Owner tried M1+M3 on their phone: sharper and good-looking, but
+**Status (2026-10-05):** M1–M4 done. Owner tried M1+M3 on their phone: sharper and good-looking, but
 the original menus were too hard to tap (→ M4), and asked to drop the HUD bar for a bigger view.
 
 - **M4 menus:** on the touch layout `MenuScene.show()` hands each screen to
@@ -40,7 +40,12 @@ the original menus were too hard to tap (→ M4), and asked to drop the HUD bar 
   107 images (the 69 sprite sheets the game uses, 7 foregrounds, 31 backgrounds; ~11.7 MB) into
   `public/assets/hd/` in ~70 s on an RTX 4080; review at `/tools/upscale-review.html`. Defringe is
   conservative after review: exact-black key, only the outer 1px fades, render pinholes filled,
-  UI art key-only. Still muddy: tiny baked text (e.g. `howieammo`), to be redrawn (M3/M4).
+  UI art key-only. Small baked-in text smeared when upscaled, so those HD versions are redrawn
+  as SVG by `npm run redraw` (`tools/redraw-text-art.mjs`): the seven score pop-up sheets (burst,
+  number, "Innocent" for the penalty one, and the frame-by-frame dissolve matched to the
+  originals) and the "Howie Ammo" crate. `upscale-assets.mjs` skips those keys (`REDRAWN`).
+  Larger text (HUD bar labels, round card, GAME OVER / YOU WON cards) upscaled cleanly and keeps
+  the AI version.
 - **M1 rendering:** the canvas backing store follows device pixels (up to 2x the logical
   1024x768; `screen.ts` `renderScale`, applied as a transform by `Engine`). `SpriteSheet` draws
   from the HD image when there is one but sizes, positions and hit masks still come from the 1x
