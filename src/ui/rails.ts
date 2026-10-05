@@ -1,5 +1,7 @@
 // Touch rails (new): the bars either side of the 4:3 game on a phone hold big touch
-// controls. Left: pause, time, score, kills (and fullscreen where it exists). Right:
+// controls, and take over from the HUD bar (cropped off during play on touch, see
+// screen.ts viewTop). Left: pause, level name, time, score, kills, rank (and fullscreen
+// where it exists). Right:
 // all nine weapons with their ammo, one tap each, instead of cycling through the HUD's
 // weapon box. Positioned from screen.ts's layout; plain DOM outside the scaled #ui
 // overlay, so they're laid out in real CSS pixels at finger size.
@@ -10,9 +12,11 @@ import { PISTOL, WEAPONS } from '../game/weapons';
 import { h } from './dom';
 
 export interface RailState {
+  level: string;
   time: number;
   score: number;
   kills: number;
+  rank: number;
   weapon: number;
   ammo: number[];
   cooldown: number; // 0-1: how much of the current weapon's reload is left
@@ -27,7 +31,8 @@ interface Handlers {
 export class Rails {
   private left: HTMLElement;
   private right: HTMLElement;
-  private stats: Record<'time' | 'score' | 'kills', HTMLElement>;
+  private stats: Record<'time' | 'score' | 'kills' | 'rank', HTMLElement>;
+  private level: HTMLElement;
   private weapons: Array<{ el: HTMLButtonElement; ammo: HTMLElement }> = [];
   private last: Partial<Record<string, string | number | boolean>> = {};
   private unsubscribe: () => void;
@@ -40,11 +45,13 @@ export class Rails {
     const [time, timeValue] = stat('Time');
     const [score, scoreValue] = stat('Score');
     const [kills, killsValue] = stat('Kills');
-    this.stats = { time: timeValue, score: scoreValue, kills: killsValue };
+    const [rank, rankValue] = stat('Rank');
+    this.stats = { time: timeValue, score: scoreValue, kills: killsValue, rank: rankValue };
+    this.level = h('div', { class: 'rail-level' });
 
     const pause = h('button', { class: 'rail-pause', text: '❚❚', 'aria-label': 'Pause' });
     onTap(pause, handlers.pause);
-    const children: HTMLElement[] = [pause, time, score, kills];
+    const children: HTMLElement[] = [pause, this.level, time, score, kills, rank];
     if (document.fullscreenEnabled) {
       const full = h('button', { class: 'rail-full', text: '⛶', 'aria-label': 'Fullscreen' });
       onTap(full, () => {
@@ -86,6 +93,8 @@ export class Rails {
     this.set('time', Math.max(0, s.time), (v) => (this.stats.time.textContent = String(v)));
     this.set('score', s.score, (v) => (this.stats.score.textContent = String(v)));
     this.set('kills', s.kills, (v) => (this.stats.kills.textContent = String(v)));
+    this.set('rank', s.rank, (v) => (this.stats.rank.textContent = String(v)));
+    this.set('level', s.level, (v) => (this.level.textContent = v));
     this.set('active', s.active, (v) => {
       this.left.classList.toggle('inactive', !v);
       this.right.classList.toggle('inactive', !v);

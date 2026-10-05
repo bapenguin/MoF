@@ -84,7 +84,11 @@ the dev server.
   run; don't mistake the stall for a hang.
 - Dev-only hooks: `window.__play` (current `PlayScene`), `window.__engine`, `window.__audio`.
   Prefer these over `import('/src/...')` in page scripts: after an edit Vite serves a fresh
-  module copy, so a dynamic import can get a different instance from the running game.
+  module copy, so a dynamic import can get a different instance from the running game. After
+  editing a shared module (e.g. `screen.ts`), even the game itself can end up with two copies
+  (modules compiled before the edit keep pointing at the old one), which shows up as state that
+  doesn't match. Restart the dev server with `npx vite --force` before trusting such a result.
+  Production builds always have one copy.
 - Synthetic clicks: dispatch `pointerdown`/`pointerup` on `#game` with client coords mapped
   from logical 1024×768. Useful bot: pick a live fairy, find an opaque pixel with
   `sheet.hit()`, click it.

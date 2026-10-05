@@ -5,7 +5,7 @@ import type { Engine, Scene } from '../engine/engine';
 import { audio } from '../engine/audio';
 import { getSheet } from '../engine/sprites';
 import { drawText, str } from '../engine/text';
-import { SCREEN_W, SCREEN_H, displayScale, layout } from '../engine/screen';
+import { SCREEN_W, SCREEN_H, displayScale, layout, setViewTop, viewTop } from '../engine/screen';
 import type { ScenarioDef } from '../game/data';
 import { GameMode, SCREENTOP, Session, World } from '../game/world';
 import { WEAPONS, isRapid } from '../game/weapons';
@@ -95,6 +95,7 @@ export class PlayScene implements Scene {
     if (import.meta.env.DEV) (window as unknown as { __play: PlayScene }).__play = this;
     document.addEventListener('visibilitychange', this.onVisibility);
     if (layout.touch) {
+      setViewTop(SCREENTOP); // the rails show what the HUD bar did, so crop it for a bigger playfield
       this.rails = new Rails({
         weapon: (num) => {
           if (this.phase === 'play' && !this.paused) this.session.switchWeapon(num);
@@ -110,6 +111,7 @@ export class PlayScene implements Scene {
   exit(): void {
     this.rails?.destroy();
     this.rails = null;
+    setViewTop(0);
     document.removeEventListener('visibilitychange', this.onVisibility);
     if (this.paused) audio.release();
     audio.stopAll();
@@ -147,7 +149,7 @@ export class PlayScene implements Scene {
       h('div', { at: [0, 0, SCREEN_W, SCREEN_H], style: { background: 'rgba(0,0,0,0.55)' } }, [
         h('div', {
           class: 'panel',
-          at: [337, (SCREEN_H - panelH) / 2, 350, panelH],
+          at: [337, (SCREEN_H + viewTop - panelH) / 2, 350, panelH], // centred in what's visible
           style: { background: 'rgb(0,64,0)', border: '2px outset #4a4', boxSizing: 'border-box', textAlign: 'center', padding: '16px' },
         }, children),
       ]),
@@ -387,18 +389,22 @@ export class PlayScene implements Scene {
 
   private showGameOverButtons(): void {
     const massacre = this.session.mode === GameMode.Massacre;
+    // Finger-sized on the touch layout, where the overlay is scaled down with the game.
+    const touch = layout.touch;
+    const [w, hgt, gap] = touch ? [230, 64, 16] : [160, 36, 20];
+    const style = { font: `bold ${touch ? 24 : 15}px Tahoma, Arial, sans-serif`, pointerEvents: 'auto' };
     this.engine.overlay.replaceChildren(
       h('div', { at: [0, 0, SCREEN_W, SCREEN_H], style: { pointerEvents: 'none' } }, [
         h('button', {
-          text: massacre ? 'Play again' : 'Try again (R)',
-          at: [SCREEN_W / 2 - 170, 548, 160, 36],
-          style: { font: 'bold 15px Tahoma, Arial, sans-serif', pointerEvents: 'auto' },
+          text: massacre ? 'Play again' : touch ? 'Try again' : 'Try again (R)',
+          at: [SCREEN_W / 2 - w - gap / 2, 548, w, hgt],
+          style,
           onClick: () => this.retryLevel(),
         }),
         h('button', {
           text: massacre ? 'Back to setup' : 'Quit to menu',
-          at: [SCREEN_W / 2 + 10, 548, 160, 36],
-          style: { font: 'bold 15px Tahoma, Arial, sans-serif', pointerEvents: 'auto' },
+          at: [SCREEN_W / 2 + gap / 2, 548, w, hgt],
+          style,
           onClick: () => this.exitGame(false),
         }),
       ]),
@@ -428,9 +434,11 @@ export class PlayScene implements Scene {
     getSheet(s.weaponDef.icon).draw(ctx, WEAPON_ICON.x, WEAPON_ICON.y);
     this.renderCooldown(ctx);
     this.rails?.update({
+      level: this.level.name,
       time: this.timeLeft,
       score: s.displayScore,
       kills: s.fairyKills,
+      rank: Math.floor(s.rank),
       weapon: s.weapon,
       ammo: s.ammo,
       cooldown: this.cooldownLeft(),

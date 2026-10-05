@@ -3,8 +3,22 @@
 Goal: make Massacre of the Fairies play properly on phones and tablets (touch-first UI, crisp
 high-res art) without forking the game.
 
-**Status (2026-10-05):** M1 and M3 done (M3 not yet tried on a real phone), M2 mostly done
-(baked-text art still to redraw). Owner confirmed M1 looks sharper on their phone. Next: M4 menus.
+**Status (2026-10-05):** M1 and M3 done, M4 done except the Massacre builder, M2 mostly done
+(baked-text art still to redraw). Owner tried M1+M3 on their phone: sharper and good-looking, but
+the original menus were too hard to tap (→ M4), and asked to drop the HUD bar for a bigger view.
+
+- **M4 menus:** on the touch layout `MenuScene.show()` hands each screen to
+  `src/scenes/menu-touch.ts`: a full-screen layer in real CSS px over the forest backdrop. Main
+  menu (logo + two big buttons + Options/Hall of Fame; no Quit, a web page can't quit), player
+  cards (one tap plays, Stats button, "Create & play"), scenario picture cards, level list with
+  stars + difficulty + big Start (tapping the selected level again also starts), switch-style
+  options that apply immediately, stats and Hall of Fame. Logic stays in `menu.ts` (some members
+  made non-private for it; `hallOfFame()` / `faceUrl()` shared). Desktop menus unchanged.
+  **Still to do:** the Massacre builder (`massacre.ts`) on touch.
+- **HUD bar dropped on touch:** during play `screen.ts` `viewTop` crops the 83 px HUD strip off
+  the top (fairies never go there), so the playfield shows 1024x685 and gets ~12% bigger; the left
+  rail gained the level name and Rank. Input, the overlay and the canvas transform all account for
+  it. Game-over buttons are finger-sized on touch.
 
 - **M3 play layout:** `screen.ts` computes a touch layout on coarse-pointer devices (`?touch=1` /
   `?touch=0` override): the game sits inside the safe area with rails of at least 76 CSS px either

@@ -5,7 +5,7 @@
 // fixed 60 Hz and rendering happens once per animation frame. Blocking waits like
 // waitforclick become separate scenes.
 
-import { fitCanvas, renderScale } from './screen';
+import { fitCanvas, renderScale, viewTop } from './screen';
 import { Input } from './input';
 
 export const STEP_MS = 1000 / 60;
@@ -61,8 +61,9 @@ export class Engine {
       }
       if (steps === MAX_STEPS) acc = 0;
       this.swapScene();
-      // Scenes draw in logical 1024x768 pixels; this maps them onto the backing store.
-      this.ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
+      // Scenes draw in logical 1024x768 pixels; this maps them onto the backing store
+      // (shifted up when the top rows are cropped off, see screen.ts viewTop).
+      this.ctx.setTransform(renderScale, 0, 0, renderScale, 0, -viewTop * renderScale);
       this.scene?.render(this.ctx, acc / STEP_MS);
 
       frames++;

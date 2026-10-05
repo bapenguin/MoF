@@ -40,6 +40,17 @@ export const touchLayout: boolean = (() => {
 export let renderScale = 1;
 export let layout: Layout = { touch: touchLayout, game: { x: 0, y: 0, w: SCREEN_W, h: SCREEN_H }, left: null, right: null };
 const listeners = new Set<(l: Layout) => void>();
+let refit: () => void = () => {};
+
+// Logical rows hidden off the top of the canvas. During play on the touch layout the
+// HUD bar's strip is cropped away (the rails show its numbers, and fairies never fly
+// up there), so the playfield is shown bigger; everything else shows all 768 rows.
+export let viewTop = 0;
+export function setViewTop(top: number): void {
+  if (top === viewTop) return;
+  viewTop = top;
+  refit();
+}
 
 // Calls `fn` now and whenever the layout changes; returns an unsubscribe function.
 export function onLayout(fn: (l: Layout) => void): () => void {
@@ -64,19 +75,20 @@ function safeArea() {
 function computeLayout(): Layout {
   const W = window.innerWidth;
   const H = window.innerHeight;
+  const viewH = SCREEN_H - viewTop;
   if (!touchLayout) {
-    const scale = Math.min(W / SCREEN_W, H / SCREEN_H);
+    const scale = Math.min(W / SCREEN_W, H / viewH);
     const w = Math.floor(SCREEN_W * scale);
-    const h = Math.floor(SCREEN_H * scale);
+    const h = Math.floor(viewH * scale);
     return { touch: false, game: { x: Math.floor((W - w) / 2), y: Math.floor((H - h) / 2), w, h }, left: null, right: null };
   }
   const safe = safeArea();
   const usableW = W - safe.l - safe.r;
   const usableH = H - safe.t - safe.b;
   // Wide phones have room to spare; on squarer screens the game shrinks to fit the rails.
-  const scale = Math.max(0.1, Math.min((usableW - 2 * MIN_RAIL) / SCREEN_W, usableH / SCREEN_H));
+  const scale = Math.max(0.1, Math.min((usableW - 2 * MIN_RAIL) / SCREEN_W, usableH / viewH));
   const w = Math.floor(SCREEN_W * scale);
-  const h = Math.floor(SCREEN_H * scale);
+  const h = Math.floor(viewH * scale);
   const x = Math.floor(safe.l + (usableW - w) / 2);
   const y = Math.floor(safe.t + (usableH - h) / 2);
   return {
@@ -100,18 +112,21 @@ export function fitCanvas(canvas: HTMLCanvasElement, overlay?: HTMLElement): voi
     // Never below 1x: a small window keeps the original resolution, scaled down by CSS.
     renderScale = Math.min(MAX_RENDER_SCALE, Math.max(1, (w / SCREEN_W) * (window.devicePixelRatio || 1)));
     const bw = Math.round(SCREEN_W * renderScale);
-    const bh = Math.round(SCREEN_H * renderScale);
+    const bh = Math.round((SCREEN_H - viewTop) * renderScale);
     if (canvas.width !== bw || canvas.height !== bh) {
       canvas.width = bw;
       canvas.height = bh;
     }
     if (overlay) {
+      const scale = w / SCREEN_W;
       overlay.style.left = `${x}px`;
-      overlay.style.top = `${y}px`;
-      overlay.style.transform = `scale(${w / SCREEN_W})`;
+      overlay.style.top = `${y - viewTop * scale}px`; // so its logical rows line up with the canvas
+      overlay.style.transform = `scale(${scale})`;
+      overlay.style.clipPath = viewTop ? `inset(${viewTop}px 0 0 0)` : '';
     }
     for (const fn of listeners) fn(layout);
   };
+  refit = resize;
   window.addEventListener('resize', resize);
   // Moving the window to a screen with a different pixel ratio doesn't fire resize.
   const watchDpr = () => {
@@ -138,6 +153,6 @@ export function toLogical(canvas: HTMLCanvasElement, e: { clientX: number; clien
   const r = canvas.getBoundingClientRect();
   return {
     x: ((e.clientX - r.left) / r.width) * SCREEN_W,
-    y: ((e.clientY - r.top) / r.height) * SCREEN_H,
+    y: viewTop + ((e.clientY - r.top) / r.height) * (SCREEN_H - viewTop),
   };
 }

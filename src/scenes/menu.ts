@@ -8,12 +8,15 @@
 //   stats      Picture3: the User Stats card
 //   hof        mofhof: the MoF Hall of Fame
 //   quit       Picture5: "Thank you for Playing"
+//
+// On the touch layout (phones, tablets) the same screens are built at finger size by
+// menu-touch.ts instead; the logic (login, unlocks, starting a game) stays here.
 
 import type { Engine, Scene } from '../engine/engine';
 import { audio } from '../engine/audio';
 import { getSheet, loadSheet } from '../engine/sprites';
 import { hasImage, imageUrl } from '../engine/assets';
-import { SCREEN_W, SCREEN_H } from '../engine/screen';
+import { SCREEN_W, SCREEN_H, layout } from '../engine/screen';
 import { levelOrder, loadScenario, scenarioList, type ScenarioDef } from '../game/data';
 import { scenarioTasks } from '../game/preload';
 import { GameMode } from '../game/world';
@@ -35,6 +38,7 @@ import { LoadingScene } from './loading';
 import { PlayScene } from './play';
 import { MassacreScene } from './massacre';
 import type { MassacreSetup } from '../game/share';
+import { TouchMenu } from './menu-touch';
 
 export const MENU_MUSIC = 'music2';
 
@@ -46,22 +50,30 @@ export const MENU_ASSETS = [
   () => audio.load(MENU_MUSIC),
 ];
 
-type Panel = 'main' | 'login' | 'scenarios' | 'levels' | 'options' | 'stats' | 'hof' | 'quit';
-type Mode = 'adventure' | 'massacre';
+export type Panel = 'main' | 'login' | 'scenarios' | 'levels' | 'options' | 'stats' | 'hof' | 'quit';
+export type Mode = 'adventure' | 'massacre';
 
 // The developers' own faces shipped with the game (sprites/<name>.bmp); a
 // player with one of these names gets that face on their stats card.
 const FACES = ['nick', 'dave', 'bozo'];
 
+export function faceUrl(p: Profile): string {
+  return FACES.includes(p.name.toLowerCase()) && hasImage('sprites', p.name.toLowerCase())
+    ? imageUrl('sprites', p.name.toLowerCase())
+    : imageUrl('ui', 'stats-face');
+}
+
 export class MenuScene implements Scene {
   private engine!: Engine;
   private panel: Panel = 'main';
-  private mode: Mode = 'adventure';
-  private player: Profile | null = null;
-  private nameDraft = lastPlayer();
+  // Read and set by menu-touch.ts too.
+  mode: Mode = 'adventure';
+  player: Profile | null = null;
+  nameDraft = lastPlayer();
+  levelScenario: ScenarioDef | null = null;
+  selectedLevel = '';
   private starting = false;
-  private levelScenario: ScenarioDef | null = null;
-  private selectedLevel = '';
+  private touch: TouchMenu | null = null;
 
   // returnTo: after an adventure, come back to that scenario's level list
   //           rather than the main menu.
@@ -71,6 +83,7 @@ export class MenuScene implements Scene {
 
   enter(engine: Engine): void {
     this.engine = engine;
+    if (layout.touch) this.touch = new TouchMenu(this);
     audio.play(MENU_MUSIC, { channel: 'music', loop: true });
     const back = this.opts.returnTo && getProfile(this.opts.returnTo.playerName);
     if (back) {
@@ -86,6 +99,7 @@ export class MenuScene implements Scene {
   }
 
   exit(): void {
+    this.touch?.destroy();
     audio.stop(MENU_MUSIC);
   }
 
@@ -106,8 +120,9 @@ export class MenuScene implements Scene {
     }
   }
 
-  private show(panel: Panel, popup?: string): void {
+  show(panel: Panel, popup?: string): void {
     this.panel = panel;
+    if (this.touch) return this.touch.show(panel, popup);
     const build: Record<Panel, () => HTMLElement[]> = {
       main: () => [this.title(), this.mainPanel()],
       login: () => [this.title(), this.loginPanel()],
@@ -198,21 +213,21 @@ export class MenuScene implements Scene {
     return p;
   }
 
-  private newUser(): void {
+  newUser(): void {
     const result = createProfile(this.nameDraft);
     if (typeof result === 'string') return this.show('login', result);
     this.nameDraft = result.name;
     this.show('login', "Finished! Press 'Go!' to begin your game.");
   }
 
-  private viewStats(): void {
+  viewStats(): void {
     const p = this.findPlayer();
     if (!p) return;
     this.player = p;
     this.show('stats');
   }
 
-  private go(): void {
+  go(): void {
     const p = this.findPlayer();
     if (!p) return;
     this.player = p;
@@ -266,7 +281,7 @@ export class MenuScene implements Scene {
 
   // ---- level select (new): pick a starting level and a difficulty ----
 
-  private async openLevels(id: string): Promise<void> {
+  async openLevels(id: string): Promise<void> {
     this.levelScenario = await loadScenario(id);
     const levels = levelOrder(this.levelScenario);
     // Default to the furthest level you've unlocked.
@@ -277,7 +292,7 @@ export class MenuScene implements Scene {
 
   // A level is open once the one before it has been cleared (or if you've
   // already beaten this scenario and moved on, from before stars existed).
-  private levelUnlocked(scenario: ScenarioDef, levelId: string): boolean {
+  levelUnlocked(scenario: ScenarioDef, levelId: string): boolean {
     const p = this.player;
     const levels = levelOrder(scenario);
     const i = levels.findIndex((l) => l.id === levelId);
@@ -351,7 +366,7 @@ export class MenuScene implements Scene {
     ]);
   }
 
-  private async startScenario(id: string): Promise<void> {
+  async startScenario(id: string): Promise<void> {
     if (this.starting || !this.player) return;
     this.starting = true;
     const scenario = await loadScenario(id);
@@ -406,9 +421,7 @@ export class MenuScene implements Scene {
     const p = this.player!;
     const value = (text: string, at: [number, number, number, number]) =>
       h('div', { text, at, style: { font: '15px Arial', color: '#0f0', textAlign: 'center', whiteSpace: 'nowrap' } });
-    const face = FACES.includes(p.name.toLowerCase()) && hasImage('sprites', p.name.toLowerCase())
-      ? imageUrl('sprites', p.name.toLowerCase())
-      : imageUrl('ui', 'stats-face');
+    const face = faceUrl(p);
     const kills = Object.entries(p.kills)
       .filter(([, n]) => n > 0)
       .sort((a, b) => b[1] - a[1])
@@ -448,22 +461,14 @@ export class MenuScene implements Scene {
   // ---- Hall of Fame (mofhof) ----
 
   private hofPanel(): HTMLElement {
-    const all = listProfiles();
-    const best = (score: (p: Profile) => number, format: (n: number) => string, eligible = (_: Profile) => true) => {
-      let top: Profile | null = null;
-      for (const p of all) if (eligible(p) && score(p) > 0 && (!top || score(p) > score(top))) top = p;
-      return top ? `${top.name} (${format(score(top))})` : '—';
-    };
-    const n = (v: number) => v.toLocaleString();
-    // The original filled in Most Kills, Best Shot and No Life Award, and left
-    // the other two blank. Best Shot needs 50+ shots so one lucky shot can't win it.
-    const rows: Array<[string, string, string, number]> = [
-      ['Most Kills', best(totalKills, n), '37px Arial', 232],
-      ['Best Shot', best(accuracy, (v) => `${v}%`, (p) => p.shots >= 50), '37px Arial', 280],
-      ['Levels Completed', best((p) => p.levelsCompleted, n), '29px Arial', 330],
-      ['No Life Award', best((p) => p.levelsPlayed, (v) => `${n(v)} levels`), '32px Arial', 376],
-      ['Coolest Guy', best((p) => p.score, (v) => `${n(v)} pts`), '29px Arial', 426],
+    const fonts: Array<[string, number]> = [
+      ['37px Arial', 232],
+      ['37px Arial', 280],
+      ['29px Arial', 330],
+      ['32px Arial', 376],
+      ['29px Arial', 426],
     ];
+    const rows = hallOfFame().map(([label, value], i): [string, string, string, number] => [label, value, ...fonts[i]]);
     return h('div', { at: [0, 0, SCREEN_W, SCREEN_H], style: { cursor: 'pointer' }, onClick: () => this.show('main') }, [
       ...rows.flatMap(([label, value, font, top]) => [
         h('div', { text: label, at: [276, top], style: { font, color: '#f00', whiteSpace: 'nowrap' } }),
@@ -488,4 +493,24 @@ export class MenuScene implements Scene {
       h('button', { text: 'Ok', at: [126, 58, 89, 25], onClick: () => this.show(this.panel) }),
     ]);
   }
+}
+
+// The Hall of Fame categories and their winners, as [label, "name (score)"].
+export function hallOfFame(): Array<[string, string]> {
+  const all = listProfiles();
+  const best = (score: (p: Profile) => number, format: (n: number) => string, eligible = (_: Profile) => true) => {
+    let top: Profile | null = null;
+    for (const p of all) if (eligible(p) && score(p) > 0 && (!top || score(p) > score(top))) top = p;
+    return top ? `${top.name} (${format(score(top))})` : '—';
+  };
+  const n = (v: number) => v.toLocaleString();
+  // The original filled in Most Kills, Best Shot and No Life Award, and left
+  // the other two blank. Best Shot needs 50+ shots so one lucky shot can't win it.
+  return [
+    ['Most Kills', best(totalKills, n)],
+    ['Best Shot', best(accuracy, (v) => `${v}%`, (p) => p.shots >= 50)],
+    ['Levels Completed', best((p) => p.levelsCompleted, n)],
+    ['No Life Award', best((p) => p.levelsPlayed, (v) => `${n(v)} levels`)],
+    ['Coolest Guy', best((p) => p.score, (v) => `${n(v)} pts`)],
+  ];
 }
